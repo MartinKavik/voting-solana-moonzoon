@@ -3,6 +3,13 @@ use moon::*;
 async fn frontend() -> Frontend {
     Frontend::new()
         .title("Voting")
+        .append_to_head("
+            <style>
+                body {
+                    background: black;
+                }
+            </style>
+        ")
 }
 
 async fn up_msg_handler(_: UpMsgRequest<()>) {}

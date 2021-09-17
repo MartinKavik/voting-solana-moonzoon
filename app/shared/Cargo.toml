@@ -7,3 +7,10 @@ description = "Voting example (Solana + MoonZoon)"
 categories = ["MoonZoon", "Solana", "example"]
 readme = "../README.md"
 edition = "2018"
+
+[dependencies]
+moonlight = { git = "https://github.com/MartinKavik/MoonZoon", rev = "2a14743" }
+
+[features]
+frontend = ["moonlight/frontend"]
+backend = ["moonlight/backend"]

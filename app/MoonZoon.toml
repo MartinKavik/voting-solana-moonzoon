@@ -12,8 +12,12 @@ enabled = false
 frontend = [
     "frontend/Cargo.toml",
     "frontend/src",
+    "shared/Cargo.toml",
+    "shared/src",
 ]
 backend = [
     "backend/Cargo.toml",
     "backend/src",
+    "shared/Cargo.toml",
+    "shared/src",
 ]

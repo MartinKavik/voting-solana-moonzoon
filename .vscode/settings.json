@@ -1,0 +1,10 @@
+{
+    "rust-analyzer.diagnostics.disabled": [
+        "missing-unsafe",
+        "add-reference-here",
+    ],
+    "rust-analyzer.procMacro.enable": true,
+    "rust-analyzer.cargo.allFeatures": true,
+    "rust-analyzer.completion.autoimport.enable": false,
+    "rust-analyzer.updates.channel": "nightly"
+}
