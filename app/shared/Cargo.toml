@@ -1,0 +1,9 @@
+[package]
+version = "0.1.0"
+name = "shared"
+repository = "https://github.com/MartinKavik/voting-solana-moonzoon"
+authors = ["Martin Kavík <martin@kavik.cz>"]
+description = "Voting example (Solana + MoonZoon)"
+categories = ["MoonZoon", "Solana", "example"]
+readme = "../README.md"
+edition = "2018"
