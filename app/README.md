@@ -4,14 +4,7 @@
 
 ## Run on a local machine
 
-1. Check you've installed [Rust](https://www.rust-lang.org/) and set it correctly:
-    ```bash
-    rustc -V # rustc 1.55.0 (c8dfcfe04 2021-09-06)
-    ```
-
 1. Follow instructions in [/program/README.md](../program/README.md).
-
-1. Copy `/program/keypairs/voting-owner-keypair.json` to `/app/backend/private/`.
 
 1. Go to the `/app` directory.
 
@@ -35,7 +28,7 @@
     # or
     mzoon start -o
     ```
-    - _Note_: `-o / --open` opens the a new tab in your browser.
+    - _Note_: `-o / --open` opens a new tab in your browser.
     - _Note_: The app is much faster when built in the release mode (`-r`).
 
 
