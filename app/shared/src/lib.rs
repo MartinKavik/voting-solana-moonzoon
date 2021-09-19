@@ -7,6 +7,9 @@ use moonlight::*;
 pub enum UpMsg {
     AddVoter { pub_key: String },
     AddParty { name: String },
+    GetParties,
+    GetDeadline,
+    Vote { party_pub_key: String, positive: bool },
 }
 
 // ------ DownMsg ------
@@ -16,4 +19,17 @@ pub enum UpMsg {
 pub enum DownMsg {
     VoterAdded { pub_key: String },
     PartyAdded { name: String },
+    PartiesLoaded { parties: Vec<Party> },
+    DeadlineLoaded { timestamp: i64 },
+    VotesChanged { party_pub_key: String, votes: i64 },
+}
+
+// -- Party --
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "serde")]
+pub struct Party {
+    pub pub_key: String,
+    pub name: String,
+    pub votes: i64,
 }

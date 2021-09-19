@@ -12,6 +12,8 @@ pub fn router() -> &'static Router<Route> {
             app::set_page_id(PageId::AddParty);
         }
         Some(Route::Root) => {
+            home_page::request_parties();
+            home_page::request_deadline();
             app::set_page_id(PageId::Home);
         }
         None => {
