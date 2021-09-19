@@ -4,6 +4,6 @@ use crate::theme::Theme;
 pub fn page() -> impl Element {
     El::new()
         .s(Align::center())
-        .s(Font::new().color(Theme::Font1).size(50))
+        .s(Font::new().color(Theme::White).size(50))
         .child("add party")
 }

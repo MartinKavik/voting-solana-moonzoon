@@ -5,6 +5,7 @@ use moonlight::*;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(crate = "serde")]
 pub enum UpMsg {
+    AddVoter { pub_key: String },
 }
 
 // ------ DownMsg ------
@@ -12,4 +13,5 @@ pub enum UpMsg {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(crate = "serde")]
 pub enum DownMsg {
+    VoterAdded { pub_key: String },
 }

@@ -1,6 +1,7 @@
-use zoon::{*, eprintln};
+use zoon::{*, eprintln, format};
 use std::borrow::Cow;
 use shared::UpMsg;
+use crate::connection::connection;
 
 mod view;
 
@@ -9,7 +10,7 @@ mod view;
 // ------ ------
 
 #[static_ref]
-fn add_voter_error() -> &'static Mutable<Option<Cow<'static, str>>> {
+fn status() -> &'static Mutable<Option<Cow<'static, str>>> {
     Mutable::new(None)
 }
 
@@ -27,27 +28,23 @@ fn voter_pubkey() -> &'static Mutable<String> {
 //   Commands
 // ------ ------
 
-pub fn set_add_voter_error(error: String) {
-    add_voter_error().set(Some(Cow::from(error)))
+pub fn set_status(new_status: String) {
+    status().set(Some(Cow::from(new_status)))
 }
 
 fn add_voter() {
-    add_voter_error().take();
+    status().take();
     if voting_owner_privkey().map(String::is_empty) || voter_pubkey().map(String::is_empty) {
-        add_voter_error().set(Some(Cow::from("Sorry, invalid private key or PubKey.")));
+        status().set(Some(Cow::from("Sorry, invalid private key or PubKey.")));
         return;
     }
     Task::start(async {
-        zoon::println!("@TODO Add Voter");
-        // let msg = UpMsg::AddVoter {
-        //     name: name().get_cloned(),
-        //     password: password().get_cloned(),
-        // };
-        // if let Err(error) = connection().send_up_msg(msg).await {
-        //     let error = error.to_string();
-        //     eprintln!("add_voter request failed: {}", error);
-        //     set_add_voter_error(error);
-        // }
+        let msg = UpMsg::AddVoter { pub_key: voter_pubkey().get_cloned() };
+        if let Err(error) = connection().send_up_msg(msg).await {
+            let error = error.to_string();
+            eprintln!("add_voter request failed: {}", error);
+            set_status(error);
+        }
     });
 }
 
@@ -60,7 +57,8 @@ fn set_voter_pubkey(pub_key: String) {
 }
 
 pub fn voter_added(pub_key: String) {
-    // @TODO, call from connection
+    let pub_key_part = pub_key.chars().take(5).collect::<String>();
+    set_status(format!("Voter {}*** added.", pub_key_part));
 }
 
 // ------ ------

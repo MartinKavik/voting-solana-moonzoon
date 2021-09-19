@@ -11,7 +11,7 @@ pub fn root() -> impl Element {
 fn header() -> impl Element {
     Row::with_tag(Tag::Nav)
         .s(Height::new(64))
-        .s(Font::new().color(Theme::Font1))
+        .s(Font::new().color(Theme::White))
         .s(Align::new().center_x())
         .s(Spacing::new(5))
         .items(header_links())
@@ -37,7 +37,7 @@ fn header_link(route: Route, label: &str, page_id: super::PageId) -> impl Elemen
         .s(Height::fill())
         .s(Padding::new().x(12))
         .s(Borders::new().bottom_signal(hovered_or_selected.map_bool(
-            || Border::new().color(Theme::Border1).width(5), 
+            || Border::new().color(Theme::Green).width(5), 
             || Border::new().color(Theme::Transparent).width(5), 
         )))
         .on_hovered_change(move |is_hovered| hovered.set_neq(is_hovered))
@@ -57,6 +57,6 @@ fn page(page_id: super::PageId) -> impl Element {
 fn unknown_page() -> impl Element {
     El::new()
         .s(Align::center())
-        .s(Font::new().color(Theme::Font1).size(50))
+        .s(Font::new().color(Theme::White).size(50))
         .child(404)
 }
