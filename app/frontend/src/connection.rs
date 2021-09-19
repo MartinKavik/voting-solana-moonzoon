@@ -7,7 +7,8 @@ pub fn connection() -> &'static Connection<UpMsg, DownMsg> {
     Connection::new(|down_msg, _cor_id| {
         println!("DownMsg received: {:?}", down_msg);
         match down_msg {
-            DownMsg::VoterAdded { pub_key} => add_voter_page::voter_added(pub_key)
+            DownMsg::VoterAdded { pub_key} => add_voter_page::voter_added(pub_key),
+            DownMsg::PartyAdded { name} => add_party_page::party_added(name),
         }
     })
 }

@@ -20,6 +20,7 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>) {
 
     let down_msg = match up_msg {
         UpMsg::AddVoter { pub_key } => DownMsg::VoterAdded { pub_key },
+        UpMsg::AddParty { name } => DownMsg::PartyAdded { name },
     };
 
     // @TODO [MoonZoon] backoff + jitter + queue or something else?
@@ -41,6 +42,6 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>) {
 #[moon::main]
 async fn main() -> std::io::Result<()> {
     println!("Voting owner keypair: {}", include_str!("../../../program/keypairs/voting-owner-keypair.json"));
-    println!("Program pubkey: {}", include_str!("../../../program/keypairs/program-pubkey"));
+    println!("Program pub_key: {}", include_str!("../../../program/keypairs/program-pubkey"));
     start(frontend, up_msg_handler, |_| {}).await
 }

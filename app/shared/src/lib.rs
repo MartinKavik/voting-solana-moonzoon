@@ -6,6 +6,7 @@ use moonlight::*;
 #[serde(crate = "serde")]
 pub enum UpMsg {
     AddVoter { pub_key: String },
+    AddParty { name: String },
 }
 
 // ------ DownMsg ------
@@ -14,4 +15,5 @@ pub enum UpMsg {
 #[serde(crate = "serde")]
 pub enum DownMsg {
     VoterAdded { pub_key: String },
+    PartyAdded { name: String },
 }

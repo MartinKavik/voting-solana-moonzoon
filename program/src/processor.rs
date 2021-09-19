@@ -3,7 +3,7 @@ use solana_program::{
     entrypoint::ProgramResult,
     program_error::ProgramError,
     msg,
-    pubkey::Pubkey,
+    pub_key::Pubkey,
     program_pack::{Pack, IsInitialized},
     sysvar::{rent::Rent, Sysvar},
     program::{invoke, invoke_signed},
@@ -62,9 +62,9 @@ impl Processor {
         }
 
         escrow_info.is_initialized = true;
-        escrow_info.initializer_pubkey = *initializer.key;
-        escrow_info.temp_token_account_pubkey = *temp_token_account.key;
-        escrow_info.initializer_token_to_receive_account_pubkey = *token_to_receive_account.key;
+        escrow_info.initializer_pub_key = *initializer.key;
+        escrow_info.temp_token_account_pub_key = *temp_token_account.key;
+        escrow_info.initializer_token_to_receive_account_pub_key = *token_to_receive_account.key;
         escrow_info.expected_amount = amount;
 
         Escrow::pack(escrow_info, &mut escrow_account.data.borrow_mut())?;
@@ -124,15 +124,15 @@ impl Processor {
     
         let escrow_info = Escrow::unpack(&escrow_account.data.borrow())?;
     
-        if escrow_info.temp_token_account_pubkey != *pdas_temp_token_account.key {
+        if escrow_info.temp_token_account_pub_key != *pdas_temp_token_account.key {
             return Err(ProgramError::InvalidAccountData);
         }
     
-        if escrow_info.initializer_pubkey != *initializers_main_account.key {
+        if escrow_info.initializer_pub_key != *initializers_main_account.key {
             return Err(ProgramError::InvalidAccountData);
         }
     
-        if escrow_info.initializer_token_to_receive_account_pubkey != *initializers_token_to_receive_account.key {
+        if escrow_info.initializer_token_to_receive_account_pub_key != *initializers_token_to_receive_account.key {
             return Err(ProgramError::InvalidAccountData);
         }
     
