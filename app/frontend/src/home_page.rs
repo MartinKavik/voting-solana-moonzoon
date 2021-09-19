@@ -1,5 +1,5 @@
 use zoon::{*, eprintln};
-use std::sync::Arc;
+use std::{sync::Arc, borrow::Cow};
 use shared::{self, UpMsg};
 use crate::connection::connection;
 
@@ -15,9 +15,22 @@ struct Party {
     votes: Mutable<i64>,
 }
 
+fn convert_party(party: shared::Party) -> Arc<Party> {
+    Arc::new(Party {
+        pub_key: party.pub_key,
+        name: party.name,
+        votes: Mutable::new(party.votes),
+    })
+}
+
 // ------ ------
 //    States
 // ------ ------
+
+#[static_ref]
+fn status() -> &'static Mutable<Option<Cow<'static, str>>> {
+    Mutable::new(None)
+}
 
 #[static_ref]
 fn parties() -> &'static MutableVec<Arc<Party>> {
@@ -29,9 +42,18 @@ fn deadline() -> &'static Mutable<Option<i64>> {
     Mutable::new(None)
 }
 
+#[static_ref]
+fn voter_private_key() -> &'static Mutable<String> {
+    Mutable::new(String::new())
+}
+
 // ------ ------
 //   Commands
 // ------ ------
+
+pub fn set_status(new_status: String) {
+    status().set(Some(Cow::from(new_status)))
+}
 
 pub fn request_parties() {
     Task::start(async {
@@ -50,17 +72,12 @@ pub fn request_deadline() {
 }
 
 pub fn convert_and_set_parties(new_parties: Vec<shared::Party>) {
-    fn convert_parties(parties: Vec<shared::Party>) -> Vec<Arc<Party>> {
-        parties.into_iter().map(|party| {
-            Arc::new(Party {
-                pub_key: party.pub_key,
-                name: party.name,
-                votes: Mutable::new(party.votes),
-            })
-        })
-        .collect()
-    }
-    parties().lock_mut().replace_cloned(convert_parties(new_parties));
+    let new_parties = new_parties.into_iter().map(convert_party).collect();
+    parties().lock_mut().replace_cloned(new_parties);
+}
+
+pub fn push_party(party: shared::Party) {
+    parties().lock_mut().push_cloned(convert_party(party));
 }
 
 pub fn set_deadline(timestamp: i64) {
@@ -85,6 +102,10 @@ fn vote(party_pub_key: String, positive: bool) {
             eprintln!("voting failed: {}", error);
         }
     });
+}
+
+fn set_voter_private_key(private_key: String) {
+    voter_private_key().set_neq(private_key)
 }
 
 // ------ ------

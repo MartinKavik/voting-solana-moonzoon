@@ -19,9 +19,11 @@ pub enum UpMsg {
 pub enum DownMsg {
     VoterAdded { pub_key: String },
     PartyAdded { name: String },
+    PartyAddedBroadcasted { party: Party },
     PartiesLoaded { parties: Vec<Party> },
     DeadlineLoaded { timestamp: i64 },
-    VotesChanged { party_pub_key: String, votes: i64 },
+    VotesChanged { status: String },
+    VotesChangedBroadcasted { party_pub_key: String, votes: i64 },
 }
 
 // -- Party --
