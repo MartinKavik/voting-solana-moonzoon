@@ -14,11 +14,7 @@ pub fn page() -> impl Element {
         .s(RoundedCorners::all(25))
         .item(title())
         .item(voter_private_key_field())
-        .item_signal(super::deadline()
-            .signal()
-            // @TODO map_some [MoonZoon] ?
-            .filter_map(|timestamp| timestamp.map(deadline))
-        )
+        .item_signal(super::deadline().signal().map_some(deadline))
         .item(status())
         .item(parties())
 }
@@ -73,8 +69,7 @@ fn deadline_date_time(timestamp: i64) -> impl Element {
 fn deadline_countdown(timestamp: i64) -> impl Element {
     let mutable_countdown = Mutable::new(0);
     let countdown = mutable_countdown.read_only();
-    // @TODO Timer::new_immediate [MoonZoon]
-    let countdown_updater = Timer::new(1_000, move || {
+    let countdown_updater = Timer::new_immediate(1_000, move || {
         mutable_countdown.set_neq(timestamp - Local::now().timestamp());
     });
     Row::new()
