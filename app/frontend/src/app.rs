@@ -10,7 +10,7 @@ mod view;
 pub enum PageId {
     AddVoter,
     AddParty,
-    Home,
+    Parties,
     Unknown,
 }
 

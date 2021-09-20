@@ -19,7 +19,7 @@ fn header() -> impl Element {
 
 fn header_links() -> Vec<impl Element> {
     vec![
-        header_link(Route::Root, "Parties", super::PageId::Home),
+        header_link(Route::Root, "Parties", super::PageId::Parties),
         header_link(Route::AddParty, "Add Party", super::PageId::AddParty),
         header_link(Route::AddVoter, "Add Voter", super::PageId::AddVoter),
     ]
@@ -49,7 +49,7 @@ fn page(page_id: super::PageId) -> impl Element {
     match page_id {
         super::PageId::AddVoter => crate::add_voter_page::view(),
         super::PageId::AddParty => crate::add_party_page::view(),
-        super::PageId::Home => crate::home_page::view(),
+        super::PageId::Parties => crate::parties_page::view(),
         super::PageId::Unknown => unknown_page().into_raw_element(),
     }
 }

@@ -4,7 +4,7 @@ mod connection;
 mod app;
 mod add_party_page;
 mod add_voter_page;
-mod home_page;
+mod parties_page;
 mod theme;
 mod router;
 
