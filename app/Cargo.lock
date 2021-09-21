@@ -364,6 +364,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 name = "backend"
 version = "0.1.0"
 dependencies = [
+ "borsh",
  "moon",
  "shared",
  "solana-client",
@@ -4275,8 +4276,6 @@ name = "voting_program"
 version = "0.1.0"
 dependencies = [
  "borsh",
- "borsh-derive",
- "serde",
  "solana-program",
  "thiserror",
 ]

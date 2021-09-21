@@ -12,6 +12,7 @@ edition = "2018"
 # moon = { git = "https://github.com/MartinKavik/MoonZoon", rev = "2a14743" }
 moon = { path = "../../../MoonZoon/crates/moon/" }
 shared = { path = "../shared", features = ["backend"] }
-voting_program = { path = "../../program", features = ["no-entrypoint", "serde"] }
+voting_program = { path = "../../program", features = ["no-entrypoint"]  }
 solana-sdk = "=1.7.12"
 solana-client = "=1.7.12"
+borsh = "=0.9.1"

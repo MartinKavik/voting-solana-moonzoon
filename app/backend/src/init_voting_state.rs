@@ -10,6 +10,7 @@ use solana_sdk::{
 use solana_client::rpc_client::RpcClient;
 use voting_program::{state::VotingState, instruction as voting_instruction};
 use std::{mem, str::FromStr};
+use borsh::BorshDeserialize;
 
 fn program_pubkey() -> &'static Pubkey {
     static INSTANCE: OnceCell<Pubkey> = OnceCell::new();
@@ -64,10 +65,15 @@ pub async fn init_voting_state() {
     }).await.expect("get_acount VotingState task failed");
     if let Ok(account) = voting_state_account {
         println!("voting_state_account {:?}", account);
+        println!(
+            "voting_state_account data {:?}", 
+            VotingState::try_from_slice(&account.data)
+                .expect("failed to deserialize VotingState account data")
+        );
         return;
     }
 
-    let voting_state_size = mem::size_of::<VotingState>();
+    let voting_state_size = VotingState::serialized_size();
     let create_voting_state_account_ix = system_instruction::create_account_with_seed(
         &voting_owner_pubkey, 
         &voting_state_pubkey, 

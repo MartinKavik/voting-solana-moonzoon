@@ -5545,8 +5545,6 @@ version = "0.1.0"
 dependencies = [
  "assert_matches",
  "borsh",
- "borsh-derive",
- "serde",
  "solana-program",
  "solana-program-test",
  "solana-sdk",
