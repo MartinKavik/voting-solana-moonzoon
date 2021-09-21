@@ -16,7 +16,7 @@ async fn frontend() -> Frontend {
         ")
 }
 
-async fn up_msg_handler(req: UpMsgRequest<UpMsg>) {
+async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
     println!("{:?}", req);
 
     let UpMsgRequest { up_msg, cor_id, session_id, .. } = req;
@@ -51,8 +51,7 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>) {
             },
         ]},
         UpMsg::GetDeadline => {
-            let deadline = Local::now() + Duration::days(7);
-            DownMsg::DeadlineLoaded { timestamp: deadline.timestamp() }
+            DownMsg::DeadlineLoaded { timestamp: deadline }
         },
         UpMsg::Vote { party_pubkey, positive } => {
             let down_msg = DownMsg::VotesChangedBroadcasted {
@@ -79,6 +78,11 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>) {
 
 #[moon::main]
 async fn main() -> std::io::Result<()> {
-    init_voting_state().await;
-    start(frontend, up_msg_handler, |_| {}).await
+    let voting_state = init_voting_state().await;
+    let deadline = voting_state.deadline;
+
+    let up_msg_handler_wrapper = move |req| {
+        up_msg_handler(req, deadline)
+    };
+    start(frontend, up_msg_handler_wrapper, |_| {}).await
 }

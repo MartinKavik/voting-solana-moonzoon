@@ -9,7 +9,7 @@ use solana_sdk::{
 };
 use solana_client::rpc_client::RpcClient;
 use voting_program::{state::VotingState, instruction as voting_instruction};
-use std::{mem, str::FromStr};
+use std::str::FromStr;
 use borsh::BorshDeserialize;
 
 fn program_pubkey() -> &'static Pubkey {
@@ -49,7 +49,24 @@ async fn request_minimum_balance_for_rent_exemption(size: usize) -> u64 {
     }).await.expect("get_minimum_balance_for_rent_exemption task failed")
 }
 
-pub async fn init_voting_state() { 
+async fn request_voting_state(voting_state_pubkey: Pubkey) -> Option<VotingState> {
+    let voting_state_account = task::spawn_blocking(move || {
+        solana_client().get_account(&voting_state_pubkey)
+    }).await.expect("get_acount VotingState task failed");
+
+    if let Ok(account) = voting_state_account {
+        let voting_state_data = VotingState::try_from_slice(&account.data)
+            .expect("failed to deserialize VotingState account data");
+
+        println!("voting_state_account {:?}", account);
+        println!("voting_state_account data {:?}", voting_state_data);
+
+        return Some(voting_state_data);
+    }
+    None
+}
+
+pub async fn init_voting_state() -> VotingState { 
     let voting_owner_pubkey = voting_owner_keypair().pubkey();
 
     let voting_state_pubkey_seed = "voting_state";
@@ -60,17 +77,8 @@ pub async fn init_voting_state() {
     ).expect("failed to create voting_state_pubkey");
     println!("voting_state_pubkey: {}", voting_state_pubkey);
 
-    let voting_state_account = task::spawn_blocking(move || {
-        solana_client().get_account(&voting_state_pubkey)
-    }).await.expect("get_acount VotingState task failed");
-    if let Ok(account) = voting_state_account {
-        println!("voting_state_account {:?}", account);
-        println!(
-            "voting_state_account data {:?}", 
-            VotingState::try_from_slice(&account.data)
-                .expect("failed to deserialize VotingState account data")
-        );
-        return;
+    if let Some(voting_state) = request_voting_state(voting_state_pubkey).await {
+        return voting_state;
     }
 
     let voting_state_size = VotingState::serialized_size();
@@ -107,5 +115,7 @@ pub async fn init_voting_state() {
         solana_client().send_and_confirm_transaction(&transaction).expect("init_voting transaction failed");
     }).await.expect("init_voting transaction task failed");
 
-    println!("VotingState initialized.")
+    println!("VotingState initialized.");
+
+    request_voting_state(voting_state_pubkey).await.expect("request VotingState failed")
 }
