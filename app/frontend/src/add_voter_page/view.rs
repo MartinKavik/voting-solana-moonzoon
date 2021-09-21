@@ -33,7 +33,7 @@ fn add_voter_fields() -> impl Element {
     Column::new()
         .s(Spacing::new(25))
         .item(voting_owner_private_key_field())
-        .item(voter_pub_key_field())
+        .item(voter_pubkey_field())
 }
 
 fn voting_owner_private_key_field() -> impl Element {
@@ -59,25 +59,25 @@ fn voting_owner_private_key_input() -> impl Element {
         .placeholder(Placeholder::new("[XX, XXX, ...]"))
 }
 
-fn voter_pub_key_field() -> impl Element {
+fn voter_pubkey_field() -> impl Element {
     Column::new()
         .s(Spacing::new(8))
-        .item(voter_pub_key_label())
-        .item(voter_pub_key_input())
+        .item(voter_pubkey_label())
+        .item(voter_pubkey_input())
 }
 
-fn voter_pub_key_label() -> impl Element {
+fn voter_pubkey_label() -> impl Element {
     Label::new()
-        .for_input("voter_pub_key")
+        .for_input("voter_pubkey")
         .label("Voter public key")
 }
 
-fn voter_pub_key_input() -> impl Element {
+fn voter_pubkey_input() -> impl Element {
     TextInput::new()
-        .id("voter_pub_key")
+        .id("voter_pubkey")
         .s(Padding::all(6))
-        .on_change(super::set_voter_pub_key)
-        .text_signal(super::voter_pub_key().signal_cloned())
+        .on_change(super::set_voter_pubkey)
+        .text_signal(super::voter_pubkey().signal_cloned())
         .on_key_down(|event| event.if_key(Key::Enter, super::add_voter))
         .placeholder(Placeholder::new("PubKey"))
 }

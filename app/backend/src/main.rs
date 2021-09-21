@@ -1,6 +1,9 @@
 use moon::*;
 use shared::*;
 
+mod init_voting_state;
+use init_voting_state::init_voting_state;
+
 async fn frontend() -> Frontend {
     Frontend::new()
         .title("Voting")
@@ -19,11 +22,11 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>) {
     let UpMsgRequest { up_msg, cor_id, session_id, .. } = req;
 
     let down_msg = match up_msg {
-        UpMsg::AddVoter { pub_key } => DownMsg::VoterAdded { pub_key },
+        UpMsg::AddVoter { pubkey } => DownMsg::VoterAdded { pubkey },
         UpMsg::AddParty { name } => {
             let party = Party {
                 name: name.clone(),
-                pub_key: "11111NEWPARTY1111111111".to_owned(),
+                pubkey: "11111NEWPARTY1111111111".to_owned(),
                 votes: 0,
             };
             let down_msg = DownMsg::PartyAddedBroadcasted { party };
@@ -33,17 +36,17 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>) {
         UpMsg::GetParties => DownMsg::PartiesLoaded {parties: vec![
             Party {
                 name: "Party A".to_owned(),
-                pub_key: (0..45).map(|_| 'A').collect(),
+                pubkey: (0..45).map(|_| 'A').collect(),
                 votes: 0,
             },
             Party {
                 name: "Party B".to_owned(),
-                pub_key: (0..45).map(|_| 'B').collect(),
+                pubkey: (0..45).map(|_| 'B').collect(),
                 votes: 1,
             },
             Party {
                 name: "Party C".to_owned(),
-                pub_key: (0..45).map(|_| 'C').collect(),
+                pubkey: (0..45).map(|_| 'C').collect(),
                 votes: -2,
             },
         ]},
@@ -51,9 +54,9 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>) {
             let deadline = Local::now() + Duration::days(7);
             DownMsg::DeadlineLoaded { timestamp: deadline.timestamp() }
         },
-        UpMsg::Vote { party_pub_key, positive } => {
+        UpMsg::Vote { party_pubkey, positive } => {
             let down_msg = DownMsg::VotesChangedBroadcasted {
-                party_pub_key: party_pub_key.clone(),
+                party_pubkey: party_pubkey.clone(),
                 votes: if positive { 123 } else { -123 }
             };
             sessions::broadcast_down_msg(&down_msg, cor_id).await;
@@ -61,7 +64,7 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>) {
             let status = format!(
                 "{} voted for '{}***'.",
                 if positive { "Positively" } else { "Negatively" }, 
-                party_pub_key.chars().take(5).collect::<String>()
+                party_pubkey.chars().take(5).collect::<String>()
             );
             DownMsg::VotesChanged { status }
         }
@@ -76,7 +79,6 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>) {
 
 #[moon::main]
 async fn main() -> std::io::Result<()> {
-    println!("Voting owner keypair: {}", include_str!("../../../program/keypairs/voting-owner-keypair.json"));
-    println!("Program pub_key: {}", include_str!("../../../program/keypairs/program-pubkey"));
+    init_voting_state().await;
     start(frontend, up_msg_handler, |_| {}).await
 }

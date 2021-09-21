@@ -13,8 +13,10 @@ solana-program = "=1.7.12"
 thiserror = "1.0.29"
 borsh = "0.9.1"
 borsh-derive = "0.9.1"
+serde = { version = "1.0.130", optional = true }
 
 [features]
+no-entrypoint = []
 test-bpf = []
 
 [dev-dependencies]

@@ -10,14 +10,14 @@ mod view;
 // ------ ------
 
 struct Party {
-    pub_key: String,
+    pubkey: String,
     name: String,
     votes: Mutable<i64>,
 }
 
 fn convert_party(party: shared::Party) -> Arc<Party> {
     Arc::new(Party {
-        pub_key: party.pub_key,
+        pubkey: party.pubkey,
         name: party.name,
         votes: Mutable::new(party.votes),
     })
@@ -84,18 +84,18 @@ pub fn set_deadline(timestamp: i64) {
     deadline().set_neq(Some(timestamp));
 }
 
-pub fn set_votes(party_pub_key: String, votes: i64) {
+pub fn set_votes(party_pubkey: String, votes: i64) {
     let parties = parties().lock_ref();
-    let party = parties.iter().find(|party| party.pub_key == party_pub_key);
+    let party = parties.iter().find(|party| party.pubkey == party_pubkey);
     if let Some(party) = party {
         party.votes.set_neq(votes);
     }
 }
 
-fn vote(party_pub_key: String, positive: bool) {
+fn vote(party_pubkey: String, positive: bool) {
     Task::start(async move {
         let msg = UpMsg::Vote {
-            party_pub_key,
+            party_pubkey,
             positive,
         };
         if let Err(error) = connection().send_up_msg(msg).await {

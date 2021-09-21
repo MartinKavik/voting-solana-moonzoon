@@ -44,15 +44,15 @@ fn process_exchange(
 
     let escrow_info = Escrow::unpack(&escrow_account.data.borrow())?;
 
-    if escrow_info.temp_token_account_pub_key != *pdas_temp_token_account.key {
+    if escrow_info.temp_token_account_pubkey != *pdas_temp_token_account.key {
         return Err(ProgramError::InvalidAccountData);
     }
 
-    if escrow_info.initializer_pub_key != *initializers_main_account.key {
+    if escrow_info.initializer_pubkey != *initializers_main_account.key {
         return Err(ProgramError::InvalidAccountData);
     }
 
-    if escrow_info.initializer_token_to_receive_account_pub_key != *initializers_token_to_receive_account.key {
+    if escrow_info.initializer_token_to_receive_account_pubkey != *initializers_token_to_receive_account.key {
         return Err(ProgramError::InvalidAccountData);
     }
 

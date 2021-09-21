@@ -20,7 +20,7 @@ fn voting_owner_private_key() -> &'static Mutable<String> {
 }
 
 #[static_ref]
-fn voter_pub_key() -> &'static Mutable<String> {
+fn voter_pubkey() -> &'static Mutable<String> {
     Mutable::new(String::new())
 }
 
@@ -34,12 +34,12 @@ pub fn set_status(new_status: String) {
 
 fn add_voter() {
     status().take();
-    if voting_owner_private_key().map(String::is_empty) || voter_pub_key().map(String::is_empty) {
+    if voting_owner_private_key().map(String::is_empty) || voter_pubkey().map(String::is_empty) {
         status().set(Some(Cow::from("Sorry, invalid private key or PubKey.")));
         return;
     }
     Task::start(async {
-        let msg = UpMsg::AddVoter { pub_key: voter_pub_key().get_cloned() };
+        let msg = UpMsg::AddVoter { pubkey: voter_pubkey().get_cloned() };
         if let Err(error) = connection().send_up_msg(msg).await {
             let error = error.to_string();
             eprintln!("add_voter request failed: {}", error);
@@ -52,14 +52,14 @@ fn set_voting_owner_private_key(private_key: String) {
     voting_owner_private_key().set_neq(private_key)
 }
 
-fn set_voter_pub_key(pub_key: String) {
-    voter_pub_key().set_neq(pub_key)
+fn set_voter_pubkey(pubkey: String) {
+    voter_pubkey().set_neq(pubkey)
 }
 
-pub fn voter_added(pub_key: String) {
-    let pub_key_part = pub_key.chars().take(5).collect::<String>();
-    set_status(format!("Voter '{}***' added.", pub_key_part));
-    voter_pub_key().take();
+pub fn voter_added(pubkey: String) {
+    let pubkey_part = pubkey.chars().take(5).collect::<String>();
+    set_status(format!("Voter '{}***' added.", pubkey_part));
+    voter_pubkey().take();
 }
 
 // ------ ------

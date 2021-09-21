@@ -45,9 +45,9 @@ pub fn process_init_escrow(
     }
 
     escrow_info.is_initialized = true;
-    escrow_info.initializer_pub_key = *initializer.key;
-    escrow_info.temp_token_account_pub_key = *temp_token_account.key;
-    escrow_info.initializer_token_to_receive_account_pub_key = *token_to_receive_account.key;
+    escrow_info.initializer_pubkey = *initializer.key;
+    escrow_info.temp_token_account_pubkey = *temp_token_account.key;
+    escrow_info.initializer_token_to_receive_account_pubkey = *token_to_receive_account.key;
     escrow_info.expected_amount = amount;
 
     Escrow::pack(escrow_info, &mut escrow_account.data.borrow_mut())?;

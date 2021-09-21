@@ -1,8 +1,11 @@
 use solana_program::{
-    program_error::ProgramError, msg,
+    program_error::ProgramError, 
+    msg,
+    instruction::{AccountMeta, Instruction},
+    pubkey::Pubkey,
 };
-use crate::error::VotingError::InvalidInstruction;
 use borsh::{BorshDeserialize, BorshSerialize};
+use crate::error::VotingError::InvalidInstruction;
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub enum VotingInstruction {
@@ -13,6 +16,7 @@ pub enum VotingInstruction {
     /// Accounts expected:
     ///
     /// 0. `[signer]` The voting owner account.
+    /// 1. `[writable]` The voting state account.
     InitVoting,
 
     /// Makes the voter eligible for voting by creating a VoterVotes account.
@@ -47,6 +51,21 @@ pub enum VotingInstruction {
         /// The party will receive one negative or positive vote.
         positive: bool,
     },
+}
+
+pub fn init_voting(
+    voting_owner_pubkey: &Pubkey,
+    voting_state_pubkey: &Pubkey,
+) -> Instruction {
+    let account_metas = vec![
+        AccountMeta::new(*voting_owner_pubkey, true),
+        AccountMeta::new(*voting_state_pubkey, false),
+    ];
+    Instruction::new_with_borsh(
+        crate::id(),
+        &VotingInstruction::InitVoting,
+        account_metas,
+    )
 }
 
 impl VotingInstruction {

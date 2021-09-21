@@ -22,6 +22,7 @@
     ```bash
     solana-test-validator -C ./config.yml
     ```
+    - Tip: `-r, --reset:  Reset the ledger to genesis if it exists.`
 
 1. Airdrop SOLs
     ```bash

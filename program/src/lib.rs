@@ -3,10 +3,10 @@ use solana_program::declare_id;
 #[cfg(not(feature = "no-entrypoint"))]
 mod entrypoint;
 
-mod instruction;
+pub mod instruction;
 mod error;
 mod processor;
-mod state;
+pub mod state;
 
 // @TODO Read the pubkey from file.
 // Note: Only `Pubkey::new_from_array` is `const`, 
