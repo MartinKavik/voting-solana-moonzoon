@@ -3,6 +3,7 @@ use solana_program::{
     msg,
     instruction::{AccountMeta, Instruction},
     pubkey::Pubkey,
+    system_program,
 };
 use borsh::{BorshDeserialize, BorshSerialize};
 use crate::error::VotingError::InvalidInstruction;
@@ -26,9 +27,22 @@ pub enum VotingInstruction {
     ///
     /// 0. `[signer]` The voting owner account.
     /// 1. `[writable]` The voter votes account.
+    /// 2. `[]` The voting program.
+    /// 3. `[]` The system program.
     AddVoter {
         voter_pubkey: Pubkey,
     },
+
+    /// `[Internal]` 
+    /// Initializes the VoterVotes account. Used in the `AddVoter` instruction.
+    ///
+    ///
+    /// Accounts expected:
+    ///
+    /// 0. `[signer]` The voting owner account.
+    /// 1. `[writable, signer]` The voter votes account.
+    /// 2. `[]` The voting program.
+    InitVoterVotes,
 
     /// Creates a new Party account with the requested name 
     /// and increments the parties counter in the VotingState account.
@@ -55,6 +69,16 @@ pub enum VotingInstruction {
     },
 }
 
+impl VotingInstruction {
+    /// Unpacks a byte buffer into a [VotingInstruction](enum.VotingInstruction.html).
+    pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
+        Self::try_from_slice(&input).map_err(|error| {
+            msg!(&error.to_string());
+            InvalidInstruction.into()
+        })
+    }
+}
+
 pub fn init_voting(
     voting_owner_pubkey: &Pubkey,
     voting_state_pubkey: &Pubkey,
@@ -72,12 +96,14 @@ pub fn init_voting(
 
 pub fn add_voter(
     voting_owner_pubkey: &Pubkey,
-    voter_pubkey: &Pubkey,
     voter_votes_pubkey: &Pubkey,
+    voter_pubkey: &Pubkey,
 ) -> Instruction {
     let account_metas = vec![
         AccountMeta::new(*voting_owner_pubkey, true),
         AccountMeta::new(*voter_votes_pubkey, false),
+        AccountMeta::new_readonly(crate::id(), false),
+        AccountMeta::new_readonly(system_program::id(), false),
     ];
     Instruction::new_with_borsh(
         crate::id(),
@@ -86,12 +112,18 @@ pub fn add_voter(
     )
 }
 
-impl VotingInstruction {
-    /// Unpacks a byte buffer into a [VotingInstruction](enum.VotingInstruction.html).
-    pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
-        Self::try_from_slice(&input).map_err(|error| {
-            msg!(&error.to_string());
-            InvalidInstruction.into()
-        })
-    }
+pub(crate) fn init_voter_votes(
+    voting_owner_pubkey: &Pubkey,
+    voter_votes_pubkey: &Pubkey,
+) -> Instruction {
+    let account_metas = vec![
+        AccountMeta::new(*voting_owner_pubkey, true),
+        AccountMeta::new(*voter_votes_pubkey, true),
+        AccountMeta::new_readonly(crate::id(), false),
+    ];
+    Instruction::new_with_borsh(
+        crate::id(),
+        &VotingInstruction::InitVoterVotes,
+        account_metas,
+    )
 }

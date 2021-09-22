@@ -1,4 +1,5 @@
 use zoon::*;
+use solana_sdk::hash::Hash;
 
 mod view;
 
@@ -23,6 +24,11 @@ fn page_id() -> &'static Mutable<PageId> {
     Mutable::new(PageId::Unknown)
 }
 
+#[static_ref]
+pub fn recent_blockhash() -> &'static Mutable<Option<Hash>> {
+    Mutable::new(None)
+}
+
 // ------ ------
 //    Signals
 // ------ ------
@@ -33,6 +39,10 @@ fn page_id() -> &'static Mutable<PageId> {
 
 pub fn set_page_id(new_page_id: PageId) {
     page_id().set_neq(new_page_id);
+}
+
+pub fn set_recent_blockhash(blockhash: Hash) {
+    recent_blockhash().set_neq(Some(blockhash));
 }
 
 // ------ ------

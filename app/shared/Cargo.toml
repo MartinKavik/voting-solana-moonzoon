@@ -11,6 +11,8 @@ edition = "2018"
 [dependencies]
 # moonlight = { git = "https://github.com/MartinKavik/MoonZoon", rev = "2a14743" }
 moonlight = { path = "../../../MoonZoon/crates/moonlight/" }
+# solana-sdk = "=1.7.12"
+solana-sdk = { git = "https://github.com/solana-labs/solana", rev="92e72d99" }
 
 [features]
 frontend = ["moonlight/frontend"]

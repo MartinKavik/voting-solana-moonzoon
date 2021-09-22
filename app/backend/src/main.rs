@@ -1,5 +1,7 @@
-use moon::*;
+use moon::{*, tokio::task};
 use shared::*;
+
+mod solana_helpers;
 
 mod init_voting_state;
 use init_voting_state::init_voting_state;
@@ -22,7 +24,23 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
     let UpMsgRequest { up_msg, cor_id, session_id, .. } = req;
 
     let down_msg = match up_msg {
-        UpMsg::AddVoter { pubkey } => DownMsg::VoterAdded { pubkey },
+        UpMsg::AddVoter { voter_pubkey, transaction } => {
+            println!("Waiting for add_voter transaction...");
+            let transaction_result = task::spawn_blocking(move || {
+                solana_helpers::client().send_and_confirm_transaction(&transaction)
+            }).await.expect("add_voter transaction task failed");
+            let voter_pubkey_or_error = match transaction_result {
+                Ok(_) => {
+                    println!("add_voter transaction committed");
+                    Ok(voter_pubkey)
+                },
+                Err(error) => {
+                    eprintln!("add_voter transaction rollbacked ({:?})", error);
+                    Err(error.to_string())
+                },
+            };
+            DownMsg::VoterAdded { voter_pubkey_or_error }
+        },
         UpMsg::AddParty { name } => {
             let party = Party {
                 name: name.clone(),
@@ -66,6 +84,9 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
                 party_pubkey.chars().take(5).collect::<String>()
             );
             DownMsg::VotesChanged { status }
+        },
+        UpMsg::RecentBlockhash => {
+            DownMsg::RecentBlockhashLoaded { blockhash: solana_helpers::request_recent_blockhash().await }
         }
     };
 

@@ -1,117 +1,14 @@
-use zoon::{*, println};
+use zoon::{*, println, eprintln};
 
 use solana_sdk::{
     pubkey::Pubkey,
-    system_instruction,
     transaction::Transaction,
     message::Message,
-    signer::{Signer, keypair::{Keypair, read_keypair}},
-    hash::Hash,
+    signer::{Signer, keypair::Keypair},
 };
-use voting_program::{self, state::VotingState, instruction as voting_instruction};
+use voting_program::instruction as voting_instruction;
 use shared::UpMsg;
-use crate::connection::connection;
-
-// fn voting_owner_keypair() -> &'static Keypair {
-//     static INSTANCE: OnceCell<Keypair> = OnceCell::new();
-//     INSTANCE.get_or_init(|| {
-//         let keypair_file_content = include_str!("../../../program/keypairs/voting-owner-keypair.json");
-//         read_keypair(&mut keypair_file_content.as_bytes()).expect("cannot parse voting-owner-keypair")
-//     })
-// }
-
-// fn solana_client() -> &'static RpcClient {
-//     static INSTANCE: OnceCell<RpcClient> = OnceCell::new();
-//     INSTANCE.get_or_init(|| {
-//         RpcClient::new("http://localhost:8899".to_owned())
-//     })
-// }
-
-// async fn request_recent_blockhash() -> Hash {
-//     task::spawn_blocking(|| {
-//         solana_client().get_latest_blockhash()
-//         .expect("get_recent_blockhash failed")
-//     }).await.expect("get_recent_blockhash task failed")
-// }
-
-// async fn request_minimum_balance_for_rent_exemption(size: usize) -> u64 {
-//     task::spawn_blocking(move || {
-//         solana_client().get_minimum_balance_for_rent_exemption(size)
-//         .expect("get_minimum_balance_for_rent_exemption failed")
-//     }).await.expect("get_minimum_balance_for_rent_exemption task failed")
-// }
-
-// async fn request_voting_state(voting_state_pubkey: Pubkey) -> Option<VotingState> {
-//     let voting_state_account = task::spawn_blocking(move || {
-//         solana_client().get_account(&voting_state_pubkey)
-//     }).await.expect("get_acount VotingState task failed");
-
-//     if let Ok(account) = voting_state_account {
-//         let voting_state_data = VotingState::try_from_slice(&account.data)
-//             .expect("failed to deserialize VotingState account data");
-
-//         println!("voting_state_account {:?}", account);
-//         println!("voting_state_account data {:?}", voting_state_data);
-
-//         return Some(voting_state_data);
-//     }
-//     None
-// }
-
-// pub async fn init_voting_state() -> VotingState { 
-//     let voting_owner_pubkey = voting_owner_keypair().pubkey();
-
-//     let voting_state_pubkey_seed = "voting_state";
-//     let voting_state_pubkey = Pubkey::create_with_seed(
-//         &voting_owner_pubkey,
-//         voting_state_pubkey_seed,
-//         &voting_program::id(),
-//     ).expect("failed to create voting_state_pubkey");
-//     println!("voting_state_pubkey: {}", voting_state_pubkey);
-
-//     if let Some(voting_state) = request_voting_state(voting_state_pubkey).await {
-//         return voting_state;
-//     }
-
-//     let voting_state_size = VotingState::serialized_size();
-//     let create_voting_state_account_ix = system_instruction::create_account_with_seed(
-//         &voting_owner_pubkey, 
-//         &voting_state_pubkey, 
-//         &voting_owner_pubkey, 
-//         voting_state_pubkey_seed, 
-//         request_minimum_balance_for_rent_exemption(voting_state_size).await as u64, 
-//         voting_state_size as u64, 
-//         &voting_program::id(),
-//     );
-
-//     let init_voting_ix = voting_instruction::init_voting(
-//         &voting_owner_pubkey, 
-//         &voting_state_pubkey
-//     );
-    
-//     let recent_blockhash = request_recent_blockhash().await;
-//     println!("recent_blockhash: {}", recent_blockhash);
-
-//     let message = Message::new(
-//         &[create_voting_state_account_ix, init_voting_ix], 
-//         None
-//     );
-//     let transaction = Transaction::new(
-//         &[voting_owner_keypair()], 
-//         message, 
-//         recent_blockhash
-//     );
-
-//     println!("Waiting for init_voting transaction...");
-//     task::spawn_blocking(move || {
-//         solana_client().send_and_confirm_transaction(&transaction).expect("init_voting transaction failed");
-//     }).await.expect("init_voting transaction task failed");
-
-//     println!("VotingState initialized.");
-
-//     request_voting_state(voting_state_pubkey).await.expect("request VotingState failed")
-// }
-
+use crate::{connection::connection, app};
 
 pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: Pubkey) {
     let voting_owner_pubkey = voting_owner_keypair.pubkey();
@@ -120,69 +17,44 @@ pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: 
     let voter_votes_pubkey = Pubkey::find_program_address(seeds, &voting_program::id()).0;
     println!("voter_votes_pubkey: {}", voter_votes_pubkey);
 
+    let add_voter_ix = voting_instruction::add_voter(
+        &voting_owner_pubkey, 
+        &voter_votes_pubkey,
+        &voter_pubkey
+    );
 
-    // let voting_owner_pubkey = voting_owner_keypair().pubkey();
+    Task::start(async move {
+        // @TODO refactor
+        let mut blockhash_stream = app::recent_blockhash().signal().to_stream();
+        let _ = blockhash_stream.next().await;
+        if let Err(error) = connection().send_up_msg(UpMsg::RecentBlockhash).await {
+            let error = error.to_string();
+            eprintln!("recent_blockhash request failed: {}", error);
+            super::set_status(error);
+        }
+        let recent_blockhash = blockhash_stream.next().await.unwrap_throw().unwrap_throw();
+        println!("recent_blockhash: {:#?}", recent_blockhash);
 
-    // let voting_state_pubkey_seed = "voting_state";
-    // let voting_state_pubkey = Pubkey::create_with_seed(
-    //     &voting_owner_pubkey,
-    //     voting_state_pubkey_seed,
-    //     &voting_program::id(),
-    // ).expect("failed to create voting_state_pubkey");
-    // println!("voting_state_pubkey: {}", voting_state_pubkey);
+        let message = Message::new(
+            &[add_voter_ix], 
+            None
+        );
+        let transaction = Transaction::new(
+            &[&voting_owner_keypair], 
+            message, 
+            recent_blockhash
+        );
 
-    // if let Some(voting_state) = request_voting_state(voting_state_pubkey).await {
-    //     return voting_state;
-    // }
-
-    // let voting_state_size = VotingState::serialized_size();
-    // let create_voting_state_account_ix = system_instruction::create_account_with_seed(
-    //     &voting_owner_pubkey, 
-    //     &voting_state_pubkey, 
-    //     &voting_owner_pubkey, 
-    //     voting_state_pubkey_seed, 
-    //     request_minimum_balance_for_rent_exemption(voting_state_size).await as u64, 
-    //     voting_state_size as u64, 
-    //     &voting_program::id(),
-    // );
-
-    // let init_voting_ix = voting_instruction::init_voting(
-    //     &voting_owner_pubkey, 
-    //     &voting_state_pubkey
-    // );
+        let up_msg = UpMsg::AddVoter {
+            voter_pubkey,
+            transaction,
+        };
+        if let Err(error) = connection().send_up_msg(up_msg).await {
+            let error = error.to_string();
+            eprintln!("add_voter request failed: {}", error);
+            super::set_status(error);
+        }
     
-    // let recent_blockhash = request_recent_blockhash().await;
-    // println!("recent_blockhash: {}", recent_blockhash);
-
-    // let message = Message::new(
-    //     &[create_voting_state_account_ix, init_voting_ix], 
-    //     None
-    // );
-    // let transaction = Transaction::new(
-    //     &[voting_owner_keypair()], 
-    //     message, 
-    //     recent_blockhash
-    // );
-
-    // println!("Waiting for init_voting transaction...");
-    // task::spawn_blocking(move || {
-    //     solana_client().send_and_confirm_transaction(&transaction).expect("init_voting transaction failed");
-    // }).await.expect("init_voting transaction task failed");
-
-    // println!("VotingState initialized.");
-
-    // request_voting_state(voting_state_pubkey).await.expect("request VotingState failed")
-
-
-
-
-
-    // Task::start(async {
-    //     let msg = UpMsg::AddVoter { pubkey: voter_pubkey().get_cloned() };
-    //     if let Err(error) = connection().send_up_msg(msg).await {
-    //         let error = error.to_string();
-    //         eprintln!("add_voter request failed: {}", error);
-    //         set_status(error);
-    //     }
-    // });
+        println!("add_voter transaction sent.");
+    });
 }

@@ -1,48 +1,18 @@
-use moon::{once_cell::sync::OnceCell, tokio::task};
+use moon::tokio::task;
 use solana_sdk::{
     pubkey::Pubkey,
     system_instruction,
     transaction::Transaction,
     message::Message,
-    signer::{Signer, keypair::{Keypair, read_keypair}},
-    hash::Hash,
+    signature::Signer,
 };
-use solana_client::rpc_client::RpcClient;
 use voting_program::{self, state::VotingState, instruction as voting_instruction};
 use borsh::BorshDeserialize;
-
-fn voting_owner_keypair() -> &'static Keypair {
-    static INSTANCE: OnceCell<Keypair> = OnceCell::new();
-    INSTANCE.get_or_init(|| {
-        let keypair_file_content = include_str!("../../../program/keypairs/voting-owner-keypair.json");
-        read_keypair(&mut keypair_file_content.as_bytes()).expect("cannot parse voting-owner-keypair")
-    })
-}
-
-fn solana_client() -> &'static RpcClient {
-    static INSTANCE: OnceCell<RpcClient> = OnceCell::new();
-    INSTANCE.get_or_init(|| {
-        RpcClient::new("http://localhost:8899".to_owned())
-    })
-}
-
-async fn request_recent_blockhash() -> Hash {
-    task::spawn_blocking(|| {
-        solana_client().get_latest_blockhash()
-        .expect("get_recent_blockhash failed")
-    }).await.expect("get_recent_blockhash task failed")
-}
-
-async fn request_minimum_balance_for_rent_exemption(size: usize) -> u64 {
-    task::spawn_blocking(move || {
-        solana_client().get_minimum_balance_for_rent_exemption(size)
-        .expect("get_minimum_balance_for_rent_exemption failed")
-    }).await.expect("get_minimum_balance_for_rent_exemption task failed")
-}
+use crate::solana_helpers;
 
 async fn request_voting_state(voting_state_pubkey: Pubkey) -> Option<VotingState> {
     let voting_state_account = task::spawn_blocking(move || {
-        solana_client().get_account(&voting_state_pubkey)
+        solana_helpers::client().get_account(&voting_state_pubkey)
     }).await.expect("get_acount VotingState task failed");
 
     if let Ok(account) = voting_state_account {
@@ -58,7 +28,7 @@ async fn request_voting_state(voting_state_pubkey: Pubkey) -> Option<VotingState
 }
 
 pub async fn init_voting_state() -> VotingState { 
-    let voting_owner_pubkey = voting_owner_keypair().pubkey();
+    let voting_owner_pubkey = solana_helpers::voting_owner_keypair().pubkey();
 
     let voting_state_pubkey_seed = "voting_state";
     let voting_state_pubkey = Pubkey::create_with_seed(
@@ -78,7 +48,7 @@ pub async fn init_voting_state() -> VotingState {
         &voting_state_pubkey, 
         &voting_owner_pubkey, 
         voting_state_pubkey_seed, 
-        request_minimum_balance_for_rent_exemption(voting_state_size).await as u64, 
+        solana_helpers::request_minimum_balance_for_rent_exemption(voting_state_size).await as u64, 
         voting_state_size as u64, 
         &voting_program::id(),
     );
@@ -88,7 +58,7 @@ pub async fn init_voting_state() -> VotingState {
         &voting_state_pubkey
     );
     
-    let recent_blockhash = request_recent_blockhash().await;
+    let recent_blockhash = solana_helpers::request_recent_blockhash().await;
     println!("recent_blockhash: {}", recent_blockhash);
 
     let message = Message::new(
@@ -96,14 +66,14 @@ pub async fn init_voting_state() -> VotingState {
         None
     );
     let transaction = Transaction::new(
-        &[voting_owner_keypair()], 
+        &[solana_helpers::voting_owner_keypair()], 
         message, 
         recent_blockhash
     );
 
     println!("Waiting for init_voting transaction...");
     task::spawn_blocking(move || {
-        solana_client().send_and_confirm_transaction(&transaction).expect("init_voting transaction failed");
+        solana_helpers::client().send_and_confirm_transaction(&transaction).expect("init_voting transaction failed");
     }).await.expect("init_voting transaction task failed");
 
     println!("VotingState initialized.");

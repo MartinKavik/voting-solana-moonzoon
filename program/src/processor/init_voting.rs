@@ -13,6 +13,8 @@ pub fn process(
     accounts: &[AccountInfo],
     _program_id: &Pubkey,
 ) -> ProgramResult {
+    msg!("QQQQQQQQQQ");
+
     let account_info_iter = &mut accounts.iter();
     let voting_owner_account = next_account_info(account_info_iter)?;
 

@@ -69,10 +69,17 @@ fn set_voter_pubkey(pubkey: String) {
     voter_pubkey().set_neq(pubkey)
 }
 
-pub fn voter_added(pubkey: String) {
-    let pubkey_part = pubkey.chars().take(5).collect::<String>();
-    set_status(format!("Voter '{}***' added.", pubkey_part));
-    voter_pubkey().take();
+pub fn voter_added(voter_pubkey_or_error: Result<Pubkey, String>) {
+    match voter_pubkey_or_error {
+        Ok(pubkey) => {
+            let pubkey_part = pubkey.to_string().chars().take(5).collect::<String>();
+            set_status(format!("Voter '{}***' added.", pubkey_part));
+            voter_pubkey().take();
+        },
+        Err(error) => {
+            set_status(error);
+        }
+    }
 }
 
 // ------ ------

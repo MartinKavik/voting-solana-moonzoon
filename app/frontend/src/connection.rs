@@ -7,7 +7,9 @@ pub fn connection() -> &'static Connection<UpMsg, DownMsg> {
     Connection::new(|down_msg, _cor_id| {
         println!("DownMsg received: {:#?}", down_msg);
         match down_msg {
-            DownMsg::VoterAdded { pubkey} => add_voter_page::voter_added(pubkey),
+            DownMsg::VoterAdded { voter_pubkey_or_error} => {
+                add_voter_page::voter_added(voter_pubkey_or_error)
+            },
             DownMsg::PartyAdded { name } => add_party_page::party_added(name),
             DownMsg::PartyAddedBroadcasted { party } => parties_page::push_party(party),
             DownMsg::PartiesLoaded { parties } => parties_page::convert_and_set_parties(parties),
@@ -16,6 +18,9 @@ pub fn connection() -> &'static Connection<UpMsg, DownMsg> {
             DownMsg::VotesChangedBroadcasted { party_pubkey , votes } => {
                 parties_page::set_votes(party_pubkey, votes);
             },
+            DownMsg::RecentBlockhashLoaded { blockhash } => {
+                app::set_recent_blockhash(blockhash);
+            }
         }
     })
 }
