@@ -31,7 +31,6 @@ pub fn process(
         is_initialized: true,
         deadline: Clock::get()?.unix_timestamp + 7 * 86_400,
         party_count: 0,
-        voting_owner: *voting_owner_account.key,
     };
 
     voting_state_account

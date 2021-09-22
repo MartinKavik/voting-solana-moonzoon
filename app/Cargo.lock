@@ -1191,6 +1191,7 @@ version = "0.1.0"
 dependencies = [
  "shared",
  "solana-sdk",
+ "voting_program",
  "zoon",
 ]
 

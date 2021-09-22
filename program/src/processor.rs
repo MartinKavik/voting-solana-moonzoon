@@ -17,9 +17,9 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], instruction_data: 
             msg!("Instruction: InitVoting");
             init_voting::process(accounts, program_id)
         }
-        VotingInstruction::AddVoter => {
+        VotingInstruction::AddVoter { voter_pubkey } => {
             msg!("Instruction: AddVoter");
-            add_voter::process(accounts, program_id)
+            add_voter::process(accounts, program_id, &voter_pubkey)
         }
         VotingInstruction::AddParty { name } => {
             msg!("Instruction: AddParty");

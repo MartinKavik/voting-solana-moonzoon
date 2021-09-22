@@ -1,8 +1,11 @@
 use zoon::{*, eprintln, format};
-use std::borrow::Cow;
-use shared::UpMsg;
-use crate::connection::connection;
+use std::{borrow::Cow, str::FromStr};
+use solana_sdk::{
+    pubkey::Pubkey,
+    signer::keypair::{Keypair, read_keypair},
+};
 
+mod add_voter_transaction;
 mod view;
 
 // ------ ------
@@ -16,12 +19,16 @@ fn status() -> &'static Mutable<Option<Cow<'static, str>>> {
 
 #[static_ref]
 fn voting_owner_private_key() -> &'static Mutable<String> {
-    Mutable::new(String::new())
+    // @TODO remove hardcoded value
+    // Mutable::new(String::new())
+    Mutable::new("[174,64,61,34,218,120,154,130,8,130,196,244,149,216,51,1,142,0,23,172,162,125,63,23,184,48,41,64,54,74,176,60,193,36,90,212,230,161,186,128,229,189,103,204,231,108,156,66,63,179,123,75,186,241,81,146,103,28,125,167,34,192,55,136]".to_owned())
 }
 
 #[static_ref]
 fn voter_pubkey() -> &'static Mutable<String> {
-    Mutable::new(String::new())
+    // @TODO remove hardcoded value
+    // Mutable::new(String::new())
+    Mutable::new("DzwqcC4NJXzUw4JghX47XGtSwHpL8nNy37SR2WSk3Udu".to_owned())
 }
 
 // ------ ------
@@ -34,18 +41,24 @@ pub fn set_status(new_status: String) {
 
 fn add_voter() {
     status().take();
-    if voting_owner_private_key().map(String::is_empty) || voter_pubkey().map(String::is_empty) {
-        status().set(Some(Cow::from("Sorry, invalid private key or PubKey.")));
-        return;
-    }
-    Task::start(async {
-        let msg = UpMsg::AddVoter { pubkey: voter_pubkey().get_cloned() };
-        if let Err(error) = connection().send_up_msg(msg).await {
-            let error = error.to_string();
-            eprintln!("add_voter request failed: {}", error);
-            set_status(error);
+    let voting_owner_keypair = voting_owner_private_key().lock_ref();
+    let voter_pubkey = voter_pubkey().lock_ref();
+
+    let voting_owner_keypair = match read_keypair(&mut voting_owner_keypair.as_bytes()) {
+        Ok(keypair) => keypair,
+        _ => {
+            status().set(Some(Cow::from("Sorry, invalid private key.")));
+            return;
         }
-    });
+    };
+    let voter_pubkey = match Pubkey::from_str(&voter_pubkey) {
+        Ok(pubkey) => pubkey,
+        _ => {
+            status().set(Some(Cow::from("Sorry, invalid PubKey.")));
+            return;
+        }
+    };
+    add_voter_transaction::create_and_send_transaction(voting_owner_keypair, voter_pubkey);
 }
 
 fn set_voting_owner_private_key(private_key: String) {
