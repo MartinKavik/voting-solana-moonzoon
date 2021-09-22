@@ -8,17 +8,8 @@ use solana_sdk::{
     hash::Hash,
 };
 use solana_client::rpc_client::RpcClient;
-use voting_program::{state::VotingState, instruction as voting_instruction};
-use std::str::FromStr;
+use voting_program::{self, state::VotingState, instruction as voting_instruction};
 use borsh::BorshDeserialize;
-
-fn program_pubkey() -> &'static Pubkey {
-    static INSTANCE: OnceCell<Pubkey> = OnceCell::new();
-    INSTANCE.get_or_init(|| {
-        let pubkey_file_content = include_str!("../../../program/keypairs/program-pubkey");
-        Pubkey::from_str(pubkey_file_content.trim()).expect("cannot parse program-pubkey")
-    })
-}
 
 fn voting_owner_keypair() -> &'static Keypair {
     static INSTANCE: OnceCell<Keypair> = OnceCell::new();
@@ -37,8 +28,8 @@ fn solana_client() -> &'static RpcClient {
 
 async fn request_recent_blockhash() -> Hash {
     task::spawn_blocking(|| {
-        solana_client().get_recent_blockhash()
-        .expect("get_recent_blockhash failed").0
+        solana_client().get_latest_blockhash()
+        .expect("get_recent_blockhash failed")
     }).await.expect("get_recent_blockhash task failed")
 }
 
@@ -73,7 +64,7 @@ pub async fn init_voting_state() -> VotingState {
     let voting_state_pubkey = Pubkey::create_with_seed(
         &voting_owner_pubkey,
         voting_state_pubkey_seed,
-        program_pubkey(),
+        &voting_program::id(),
     ).expect("failed to create voting_state_pubkey");
     println!("voting_state_pubkey: {}", voting_state_pubkey);
 
@@ -89,7 +80,7 @@ pub async fn init_voting_state() -> VotingState {
         voting_state_pubkey_seed, 
         request_minimum_balance_for_rent_exemption(voting_state_size).await as u64, 
         voting_state_size as u64, 
-        program_pubkey(),
+        &voting_program::id(),
     );
 
     let init_voting_ix = voting_instruction::init_voting(

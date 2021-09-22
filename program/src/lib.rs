@@ -8,10 +8,8 @@ mod error;
 mod processor;
 pub mod state;
 
-// @TODO Read the pubkey from file.
-// Note: Only `Pubkey::new_from_array` is `const`, 
-// but it doesn't accept a base58-encoded pubkey read by `include_str!/bytes`.
-// And the `declare_id` macro doesn't accept `&str`. Other libs decode only base64/hex/32.
-// 
-// = "../keypairs/program-pubkey"
+// @TODO Is possible to read it from "../keypairs/program-pubkey"?
+//
+// @TODO Should I use declare_program! instead? Does it work with the `no-entrypoint` feature? 
+// (Do I really need the `no-entrypoint` feature?)
 declare_id!("4dKeVRjqyVNA3n48d1RGf3k2f8fEo1fGsUMPSmsHW4LG");

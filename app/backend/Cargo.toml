@@ -7,12 +7,15 @@ description = "Voting example (Solana + MoonZoon)"
 categories = ["MoonZoon", "Solana", "example"]
 readme = "../README.md"
 edition = "2018"
+resolver = "2"
 
 [dependencies]
 # moon = { git = "https://github.com/MartinKavik/MoonZoon", rev = "2a14743" }
 moon = { path = "../../../MoonZoon/crates/moon/" }
 shared = { path = "../shared", features = ["backend"] }
-voting_program = { path = "../../program", features = ["no-entrypoint"]  }
-solana-sdk = "=1.7.12"
-solana-client = "=1.7.12"
 borsh = "=0.9.1"
+# solana-sdk = "=1.7.12"
+solana-sdk = { git = "https://github.com/solana-labs/solana", rev="92e72d99" }
+# solana-client = "=1.7.12"
+solana-client = { git = "https://github.com/solana-labs/solana", rev="92e72d99" }
+voting_program = { path = "../../program", features = ["no-entrypoint"]  }

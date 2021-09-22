@@ -7,6 +7,7 @@ description = "Voting example (Solana + MoonZoon)"
 categories = ["MoonZoon", "Solana", "example"]
 readme = "../README.md"
 edition = "2018"
+resolver = "2"
 
 [lib]
 crate-type = ["cdylib"]
@@ -15,9 +16,21 @@ crate-type = ["cdylib"]
 # zoon = { git = "https://github.com/MartinKavik/MoonZoon", rev = "2a14743" }
 zoon = { path = "../../../MoonZoon/crates/zoon/" }
 shared = { path = "../shared", features = ["frontend"] }
-rand = { version = "0.8.3", features = ["small_rng", "getrandom"], default-features = false }
-getrandom = { version = "0.2", features = ["js"], default-features = false }
+
+# @TODO stable solana-* versions. 
+# We need newer memmap2 (it's a transitive depedency), 
+# because older versions can't be compiled on Wasm (https://github.com/RazrFalcon/memmap2-rs/pull/10/files).
+#
+# Commit 92e72d99 seems to work with Solana 1.7.12.
+#
+# Note: I can't (?) disable default features here because Rust resolver (even v.2) 
+# seems to merge features with `solana-sdk` (`solana-client` / `voting_client`) defined in the package `backend`.
+# Perhaps I can fix it by destroying workspace but it'll introduce other problems.
+# - Related article: https://nickb.dev/blog/cargo-workspace-and-the-feature-unification-pitfall
+# - Related RFC: https://rust-lang.github.io/rfcs/2957-cargo-features2.html
+#
+# solana-sdk = { version = "=1.7.12", default-features = false }
+solana-sdk = { git = "https://github.com/solana-labs/solana", rev="92e72d99", default-features = false }
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ['-Oz']
-

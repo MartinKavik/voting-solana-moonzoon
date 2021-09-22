@@ -9,7 +9,8 @@ readme = "../README.md"
 edition = "2018"
 
 [dependencies]
-solana-program = "=1.7.12"
+# solana-program = "=1.7.12"
+solana-program = { git = "https://github.com/solana-labs/solana", rev="92e72d99" }
 thiserror = "1.0.29"
 borsh = "=0.9.1"
 
@@ -19,9 +20,12 @@ test-bpf = []
 
 [dev-dependencies]
 assert_matches = "1.4.0"
-solana-program-test = "=1.7.12"
-solana-sdk = "=1.7.12"
-solana-validator = "=1.7.12"
+# solana-program-test = "=1.7.12"
+solana-program-test = { git = "https://github.com/solana-labs/solana", rev="92e72d99" }
+# solana-sdk = "=1.7.12"
+solana-sdk = { git = "https://github.com/solana-labs/solana", rev="92e72d99" }
+# solana-validator = "=1.7.12"
+solana-validator = { git = "https://github.com/solana-labs/solana", rev="92e72d99" }
 
 [lib]
 crate-type = ["cdylib", "lib"]

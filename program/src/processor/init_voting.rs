@@ -22,6 +22,7 @@ pub fn process(
 
     let voting_state_account = next_account_info(account_info_iter)?;
 
+    // @TODO A better way? Use something like https://crates.io/crates/binary-layout?
     if !voting_state_account.try_borrow_data()?.iter().all(|byte| *byte == 0) {
         Err(ProgramError::AccountAlreadyInitialized)?
     }
