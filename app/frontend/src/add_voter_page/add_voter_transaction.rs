@@ -17,6 +17,8 @@ pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: 
     let voter_votes_pubkey = Pubkey::find_program_address(seeds, &voting_program::id()).0;
     println!("voter_votes_pubkey: {}", voter_votes_pubkey);
 
+    // @TODO Check if the account voter_votes already exists. Then set an error status and return.
+
     let add_voter_ix = voting_instruction::add_voter(
         &voting_owner_pubkey, 
         &voter_votes_pubkey,

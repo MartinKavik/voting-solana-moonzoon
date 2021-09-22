@@ -43,6 +43,8 @@ pub async fn init_voting_state() -> VotingState {
     }
 
     let voting_state_size = VotingState::serialized_size();
+    // @TODO_QUESTION is `system_instruction::create_account_with_seed` ok 
+    // or is it better to create an account in a program with `Pubkey::find_program_address` + invoke_signed?
     let create_voting_state_account_ix = system_instruction::create_account_with_seed(
         &voting_owner_pubkey, 
         &voting_state_pubkey, 

@@ -8,7 +8,8 @@ use solana_program::{
     system_instruction,
     program::invoke_signed,
 };
-use crate::{state::VoterVotes, instruction as voting_instruction};
+use crate::state::VoterVotes;
+use borsh::BorshSerialize;
 
 pub fn process(
     accounts: &[AccountInfo],
@@ -57,17 +58,16 @@ pub fn process(
     )?;
     msg!("VoterVotes account created.");
 
-    let init_voter_votes_ix = voting_instruction::init_voter_votes(
-        voting_owner_account.key, 
-        voter_votes_account.key,
-    );
-    invoke_signed(
-        &init_voter_votes_ix, 
-        accounts, 
-        &[signer_seeds],
-    )?;
+    let new_voter_votes = VoterVotes {
+        is_initialized: true,
+        positive_votes: 2,
+        negative_votes: 1,
+    };
+    voter_votes_account
+        .try_borrow_mut_data()?
+        .copy_from_slice(&new_voter_votes.try_to_vec()?);
 
-    msg!("VoterVotes account finished.");
+    msg!("VoterVotes account initialized.");
 
     Ok(())
 }

@@ -18,7 +18,7 @@ zoon = { path = "../../../MoonZoon/crates/zoon/" }
 shared = { path = "../shared", features = ["frontend"] }
 voting_program = { path = "../../program", features = ["no-entrypoint"]  }
 
-# @TODO Replace with stable solana-* versions. 
+# @TODO_QUESTION Replace with stable solana-* versions. 
 # We need newer memmap2 (it's a transitive depedency), 
 # because older versions can't be compiled on Wasm (https://github.com/RazrFalcon/memmap2-rs/pull/10/files).
 #

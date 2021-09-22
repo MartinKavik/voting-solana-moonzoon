@@ -9,7 +9,7 @@ pub struct VotingState {
 
 impl VotingState {
     pub fn serialized_size() -> usize {
-        // @TODO compute once? Use something like https://crates.io/crates/binary-layout, but with LEN/size()?
+        // @TODO_QUESTION compute once? Use something like https://crates.io/crates/binary-layout, but with LEN/size()?
         VotingState::default()
             .try_to_vec()
             .expect("failed to serialize default VotingState")

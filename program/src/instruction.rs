@@ -33,17 +33,6 @@ pub enum VotingInstruction {
         voter_pubkey: Pubkey,
     },
 
-    /// `[Internal]` 
-    /// Initializes the VoterVotes account. Used in the `AddVoter` instruction.
-    ///
-    ///
-    /// Accounts expected:
-    ///
-    /// 0. `[signer]` The voting owner account.
-    /// 1. `[writable, signer]` The voter votes account.
-    /// 2. `[]` The voting program.
-    InitVoterVotes,
-
     /// Creates a new Party account with the requested name 
     /// and increments the parties counter in the VotingState account.
     ///
@@ -108,22 +97,6 @@ pub fn add_voter(
     Instruction::new_with_borsh(
         crate::id(),
         &VotingInstruction::AddVoter { voter_pubkey: *voter_pubkey },
-        account_metas,
-    )
-}
-
-pub(crate) fn init_voter_votes(
-    voting_owner_pubkey: &Pubkey,
-    voter_votes_pubkey: &Pubkey,
-) -> Instruction {
-    let account_metas = vec![
-        AccountMeta::new(*voting_owner_pubkey, true),
-        AccountMeta::new(*voter_votes_pubkey, true),
-        AccountMeta::new_readonly(crate::id(), false),
-    ];
-    Instruction::new_with_borsh(
-        crate::id(),
-        &VotingInstruction::InitVoterVotes,
         account_metas,
     )
 }

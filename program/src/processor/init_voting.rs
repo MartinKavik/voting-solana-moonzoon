@@ -13,8 +13,6 @@ pub fn process(
     accounts: &[AccountInfo],
     _program_id: &Pubkey,
 ) -> ProgramResult {
-    msg!("QQQQQQQQQQ");
-
     let account_info_iter = &mut accounts.iter();
     let voting_owner_account = next_account_info(account_info_iter)?;
 
@@ -24,7 +22,7 @@ pub fn process(
 
     let voting_state_account = next_account_info(account_info_iter)?;
 
-    // @TODO A better way? Use something like https://crates.io/crates/binary-layout?
+    // @TODO_QUESTION A better way? Use something like https://crates.io/crates/binary-layout?
     if !voting_state_account.try_borrow_data()?.iter().all(|byte| *byte == 0) {
         Err(ProgramError::AccountAlreadyInitialized)?
     }
