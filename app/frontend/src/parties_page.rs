@@ -2,8 +2,12 @@ use zoon::{*, eprintln};
 use std::{sync::Arc, borrow::Cow};
 use shared::{self, UpMsg};
 use crate::connection::connection;
-use solana_sdk::pubkey::Pubkey;
+use solana_sdk::{
+    pubkey::Pubkey,
+    signer::keypair::read_keypair,
+};
 
+mod vote_transaction;
 mod view;
 
 // ------ ------
@@ -45,15 +49,17 @@ fn deadline() -> &'static Mutable<Option<i64>> {
 
 #[static_ref]
 fn voter_private_key() -> &'static Mutable<String> {
-    Mutable::new(String::new())
+    // @TODO remove hardcoded value
+    // Mutable::new(String::new())
+    Mutable::new("[142,26,26,248,251,208,51,10,116,93,98,146,211,32,153,244,188,50,216,153,186,31,43,22,175,132,223,117,141,144,139,189,36,44,206,11,125,213,237,45,134,87,176,198,5,181,173,165,18,254,34,219,78,194,168,66,63,223,123,6,165,8,205,183]".to_owned())
 }
 
 // ------ ------
 //   Commands
 // ------ ------
 
-pub fn set_status(new_status: String) {
-    status().set(Some(Cow::from(new_status)))
+pub fn set_status(new_status: impl Into<Cow<'static, str>>) {
+    status().set(Some(new_status.into()))
 }
 
 pub fn request_parties() {
@@ -94,15 +100,21 @@ pub fn set_votes(party_pubkey: Pubkey, votes: i64) {
 }
 
 fn vote(party_pubkey: Pubkey, positive: bool) {
-    Task::start(async move {
-        let msg = UpMsg::Vote {
-            party_pubkey,
-            positive,
-        };
-        if let Err(error) = connection().send_up_msg(msg).await {
-            eprintln!("voting failed: {}", error);
+    status().take();
+    let voter_keypair = voter_private_key().lock_ref();
+
+    let voter_keypair = match read_keypair(&mut voter_keypair.as_bytes()) {
+        Ok(keypair) => keypair,
+        _ => {
+            set_status("Sorry, invalid private key.");
+            return;
         }
-    });
+    };
+    vote_transaction::create_and_send_transaction(
+        voter_keypair,
+        party_pubkey, 
+        positive,
+    );
 }
 
 fn set_voter_private_key(private_key: String) {

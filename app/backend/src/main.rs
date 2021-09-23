@@ -33,6 +33,7 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
 
             let transaction_result = task::spawn_blocking(move || {
                 // @TODO_QUESTION Why does it take so long? Would a different `commitment` or something else help?
+                // @TODO_QUESTION What is `RpcClient::send_and_confirm_transaction_with_spinner`?
                 solana_helpers::client().send_and_confirm_transaction(&transaction)
             }).await.expect("add_voter transaction task failed");
 
@@ -114,18 +115,32 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
         UpMsg::GetDeadline => {
             DownMsg::DeadlineLoaded { timestamp: deadline }
         },
-        UpMsg::Vote { party_pubkey, positive } => {
-            let down_msg = DownMsg::VotesChangedBroadcasted {
-                party_pubkey: party_pubkey.clone(),
-                votes: if positive { 123 } else { -123 }
-            };
-            sessions::broadcast_down_msg(&down_msg, cor_id).await;
+        UpMsg::Vote { party_pubkey, votes, positively_voted, transaction } => {
+            println!("Waiting for vote transaction...");
 
-            let status = format!(
-                "{} voted for '{}***'.",
-                if positive { "Positively" } else { "Negatively" }, 
-                party_pubkey.to_string().chars().take(5).collect::<String>()
-            );
+            let transaction_result = task::spawn_blocking(move || {
+                solana_helpers::client().send_and_confirm_transaction(&transaction)
+            }).await.expect("vote transaction task failed");
+
+            let status = match transaction_result {
+                Ok(_) => {
+                    println!("vote transaction committed");
+                    let down_msg = DownMsg::VotesChangedBroadcasted {
+                        party_pubkey,
+                        votes,
+                    };
+                    sessions::broadcast_down_msg(&down_msg, cor_id).await;
+                    format!(
+                        "{} voted for '{}***'.",
+                        if positively_voted { "Positively" } else { "Negatively" }, 
+                        party_pubkey.to_string().chars().take(5).collect::<String>()
+                    )
+                },
+                Err(error) => {
+                    eprintln!("vote transaction rollbacked ({:?})", error);
+                    error.to_string()
+                },
+            };
             DownMsg::VotesChanged { status }
         },
         UpMsg::GetRecentBlockhash => {

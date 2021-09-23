@@ -15,7 +15,7 @@ pub enum UpMsg {
     AddParty { name: String, pubkey: Pubkey, transaction: Transaction },
     GetParties,
     GetDeadline,
-    Vote { party_pubkey: Pubkey, positive: bool },
+    Vote { party_pubkey: Pubkey, positively_voted: bool, votes: i64, transaction: Transaction },
     GetRecentBlockhash,
     GetAccount { account_pubkey: Pubkey }
 }

@@ -27,15 +27,14 @@ pub fn process(
         Err(ProgramError::AccountAlreadyInitialized)?
     }
 
-    let new_voting_state = VotingState {
+    let voting_state = VotingState {
         is_initialized: true,
         deadline: Clock::get()?.unix_timestamp + 7 * 86_400,
         party_count: 0,
+        voting_owner: *voting_owner_account.key,
     };
 
-    voting_state_account
-        .try_borrow_mut_data()?
-        .copy_from_slice(&new_voting_state.try_to_vec()?);
+    voting_state.serialize(&mut *voting_state_account.try_borrow_mut_data()?)?;
 
     msg!("VotingState initialized.");
 

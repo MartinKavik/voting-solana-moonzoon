@@ -48,13 +48,14 @@ pub fn process(
     }
 
     voting_state.party_count += 1;
-    voting_state_account_data.copy_from_slice(&voting_state.try_to_vec()?);
+    voting_state.serialize(&mut *voting_state_account_data)?;
 
     let new_party = Party {
         is_initialized: true,
         positive_votes: 0,
         negative_votes: 0,
         name: party_name,
+        voting_state_pubkey: *voting_state_account.key,
     };
     let new_party_serialized = new_party.try_to_vec()?;
 

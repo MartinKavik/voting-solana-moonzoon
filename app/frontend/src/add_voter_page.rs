@@ -39,7 +39,6 @@ pub fn set_status(new_status: impl Into<Cow<'static, str>>) {
     status().set(Some(new_status.into()))
 }
 
-
 fn add_voter() {
     status().take();
     let voting_owner_keypair = voting_owner_private_key().lock_ref();

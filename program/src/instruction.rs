@@ -26,8 +26,9 @@ pub enum VotingInstruction {
     /// Accounts expected:
     ///
     /// 0. `[writable, signer]` The voting owner account.
-    /// 1. `[writable]` The voter votes account.
-    /// 2. `[]` The system program.
+    /// 1. `[]` The voting state account.
+    /// 2. `[writable]` The voter votes account.
+    /// 3. `[]` The system program.
     AddVoter {
         voter_pubkey: Pubkey,
     },
@@ -51,8 +52,12 @@ pub enum VotingInstruction {
     ///
     /// Accounts expected:
     ///
-    /// 0. `[writable, signer]` The eligible voter account.
-    /// 1. `[]` The voted party account.
+    /// 0. `[writable, signer]` The voter account.
+    /// 1. `[]` The voting state account.
+    /// 2. `[writable]` The voter voted account.
+    /// 3. `[writable]` The voter votes account.
+    /// 4. `[writable]` The party account.
+    /// 5. `[]` The system program.
     Vote {
         /// The party will receive one negative or positive vote.
         positive: bool,
@@ -69,13 +74,20 @@ impl VotingInstruction {
     }
 }
 
+fn voting_state_pubkey(voting_owner_pubkey: &Pubkey) -> Pubkey {
+    Pubkey::create_with_seed(
+        voting_owner_pubkey,
+        "voting_state",
+        &crate::id(),
+    ).expect("failed to create voting_state_pubkey")
+}
+
 pub fn init_voting(
     voting_owner_pubkey: &Pubkey,
-    voting_state_pubkey: &Pubkey,
 ) -> Instruction {
     let account_metas = vec![
         AccountMeta::new(*voting_owner_pubkey, true),
-        AccountMeta::new(*voting_state_pubkey, false),
+        AccountMeta::new(voting_state_pubkey(voting_owner_pubkey), false),
     ];
     Instruction::new_with_borsh(
         crate::id(),
@@ -86,36 +98,82 @@ pub fn init_voting(
 
 pub fn add_voter(
     voting_owner_pubkey: &Pubkey,
-    voter_votes_pubkey: &Pubkey,
     voter_pubkey: &Pubkey,
-) -> Instruction {
+) -> (Instruction, Pubkey) {
+    let voting_state_pubkey = voting_state_pubkey(voting_owner_pubkey);
+
+    let seeds = &[b"voter_votes".as_ref(), &voter_pubkey.as_ref(), &voting_state_pubkey.as_ref()];
+    let voter_votes_pubkey = Pubkey::find_program_address(seeds, &crate::id()).0;
+
     let account_metas = vec![
         AccountMeta::new(*voting_owner_pubkey, true),
-        AccountMeta::new(*voter_votes_pubkey, false),
+        AccountMeta::new_readonly(voting_state_pubkey, false),
+        AccountMeta::new(voter_votes_pubkey, false),
         AccountMeta::new_readonly(system_program::id(), false),
     ];
-    Instruction::new_with_borsh(
+    let ix = Instruction::new_with_borsh(
         crate::id(),
         &VotingInstruction::AddVoter { voter_pubkey: *voter_pubkey },
         account_metas,
-    )
+    );
+    (ix, voter_votes_pubkey)
 }
 
+// @TODO_QUESTION: How to represent a `Vec<Party>` on chain?  
+// @TODO_QUESTION: Can I create a Party account without the need 
+// to define the new index outside of transaction to prevent conflicts? 
 pub fn add_party(
     fee_payer: &Pubkey,
-    party_pubkey: &Pubkey,
     party_name: &str,
+    party_count: u32,
     voting_state_pubkey: &Pubkey,
-) -> Instruction {
+) -> (Instruction, Pubkey) {
+    let new_party_index_bytes = party_count.to_le_bytes();
+    let seeds = &[b"party", new_party_index_bytes.as_ref(), voting_state_pubkey.as_ref()];
+    let party_pubkey = Pubkey::find_program_address(seeds, &crate::id()).0;
+
     let account_metas = vec![
         AccountMeta::new(*fee_payer, true),
-        AccountMeta::new(*party_pubkey, false),
+        AccountMeta::new(party_pubkey, false),
         AccountMeta::new(*voting_state_pubkey, false),
+        AccountMeta::new_readonly(system_program::id(), false),
+    ];
+    let ix = Instruction::new_with_borsh(
+        crate::id(),
+        &VotingInstruction::AddParty { name: party_name.to_owned() },
+        account_metas,
+    );
+    (ix, party_pubkey)
+}
+
+pub fn vote(
+    voter_pubkey: &Pubkey,
+    voting_state_pubkey: &Pubkey,
+    party_pubkey: &Pubkey,
+    positive: bool,
+) -> Instruction {
+    let seeds = &[b"voter_votes".as_ref(), &voter_pubkey.as_ref(), &voting_state_pubkey.as_ref()];
+    let voter_votes_pubkey = Pubkey::find_program_address(seeds, &crate::id()).0;
+
+    let seeds = &[
+        b"voter_voted".as_ref(), 
+        &voter_pubkey.as_ref(), 
+        &party_pubkey.as_ref(),
+        &voting_state_pubkey.as_ref(),
+    ];
+    let voter_voted_pubkey = Pubkey::find_program_address(seeds, &crate::id()).0;
+
+    let account_metas = vec![
+        AccountMeta::new(*voter_pubkey, true),
+        AccountMeta::new_readonly(*voting_state_pubkey, false),
+        AccountMeta::new(voter_voted_pubkey, false),
+        AccountMeta::new(voter_votes_pubkey, false),
+        AccountMeta::new(*party_pubkey, false),
         AccountMeta::new_readonly(system_program::id(), false),
     ];
     Instruction::new_with_borsh(
         crate::id(),
-        &VotingInstruction::AddParty { name: party_name.to_owned() },
+        &VotingInstruction::Vote { positive },
         account_metas,
     )
 }

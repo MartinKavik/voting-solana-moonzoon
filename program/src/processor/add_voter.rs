@@ -8,8 +8,8 @@ use solana_program::{
     system_instruction,
     program::invoke_signed,
 };
-use crate::state::VoterVotes;
-use borsh::BorshSerialize;
+use crate::{state::{VoterVotes, VotingState}, error::VotingError};
+use borsh::{BorshSerialize, BorshDeserialize};
 
 pub fn process(
     accounts: &[AccountInfo],
@@ -23,13 +23,26 @@ pub fn process(
         Err(ProgramError::MissingRequiredSignature)?;
     }
 
+    let voting_state_account = next_account_info(account_info_iter)?;
+
+    if voting_state_account.owner != program_id {
+        Err(ProgramError::IllegalOwner)?;
+    }
+
+    let voting_state_data =  voting_state_account.try_borrow_data()?;
+    let voting_state = VotingState::try_from_slice(&voting_state_data)?;
+
+    if voting_state.voting_owner != *voting_owner_account.key {
+        Err(VotingError::IllegalVotingOwner)?;
+    }
+
     let voter_votes_account = next_account_info(account_info_iter)?;
 
     if !voter_votes_account.try_borrow_data()?.iter().all(|byte| *byte == 0) {
         Err(ProgramError::AccountAlreadyInitialized)?
     }
 
-    let seeds = &[b"voter_votes".as_ref(), &voter_pubkey.as_ref(), &voting_owner_account.key.as_ref()];
+    let seeds = &[b"voter_votes".as_ref(), &voter_pubkey.as_ref(), &voting_state_account.key.as_ref()];
     let (expected_voter_votes_pubkey, bump_seed) = Pubkey::find_program_address(seeds, program_id);
     if expected_voter_votes_pubkey != *voter_votes_account.key {
         Err(ProgramError::InvalidSeeds)?
@@ -47,7 +60,7 @@ pub fn process(
     let signer_seeds = &[
         b"voter_votes".as_ref(), 
         &voter_pubkey.as_ref(), 
-        &voting_owner_account.key.as_ref(),
+        &voting_state_account.key.as_ref(),
         &[bump_seed],
     ];
 
@@ -62,10 +75,10 @@ pub fn process(
         is_initialized: true,
         positive_votes: 2,
         negative_votes: 1,
+        voter_pubkey: *voter_pubkey,
+        voting_state_pubkey: *voting_state_account.key,
     };
-    voter_votes_account
-        .try_borrow_mut_data()?
-        .copy_from_slice(&new_voter_votes.try_to_vec()?);
+    new_voter_votes.serialize(&mut *voter_votes_account.try_borrow_mut_data()?)?;
 
     msg!("VoterVotes account initialized.");
 

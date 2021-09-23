@@ -1,4 +1,5 @@
 use borsh::{BorshDeserialize, BorshSerialize};
+use solana_program::pubkey::Pubkey;
 
 #[derive(Default, BorshSerialize, BorshDeserialize, Debug)]
 pub struct Party {
@@ -8,6 +9,7 @@ pub struct Party {
     // @TODO How to store strings to avoid problems with fixed data length? 
     // Something like `arrayvec::ArrayString`?
     pub name: String,
+    pub voting_state_pubkey: Pubkey,
 }
 
 impl Party {

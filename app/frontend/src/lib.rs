@@ -7,6 +7,7 @@ mod add_voter_page;
 mod parties_page;
 mod theme;
 mod router;
+mod solana_helpers;
 
 #[wasm_bindgen(start)]
 pub fn start() {

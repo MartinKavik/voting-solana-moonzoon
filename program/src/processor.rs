@@ -11,6 +11,7 @@ mod add_voter;
 mod add_party;
 mod vote;
 
+#[cfg_attr(feature = "no-entrypoint", allow(dead_code))]
 pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramResult {
     match VotingInstruction::unpack(instruction_data)? {
         VotingInstruction::InitVoting => {

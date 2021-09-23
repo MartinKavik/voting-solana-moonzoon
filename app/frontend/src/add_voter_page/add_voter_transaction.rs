@@ -8,21 +8,15 @@ use solana_sdk::{
 };
 use voting_program::{instruction as voting_instruction, state::VoterVotes};
 use shared::UpMsg;
-use crate::{connection::{connection, wait_for_cor_id}, app};
+use crate::{connection::{connection, wait_for_cor_id}, app, solana_helpers};
 use borsh::BorshDeserialize;
 
 pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: Pubkey) {
-    let voting_owner_pubkey = voting_owner_keypair.pubkey();
-
-    let seeds = &[b"voter_votes", voter_pubkey.as_ref(), voting_owner_pubkey.as_ref()];
-    let voter_votes_pubkey = Pubkey::find_program_address(seeds, &voting_program::id()).0;
-    println!("voter_votes_pubkey: {}", voter_votes_pubkey);
-
-    let add_voter_ix = voting_instruction::add_voter(
-        &voting_owner_pubkey, 
-        &voter_votes_pubkey,
+    let (add_voter_ix, voter_votes_pubkey) = voting_instruction::add_voter(
+        &voting_owner_keypair.pubkey(), 
         &voter_pubkey
     );
+    println!("voter_votes_pubkey: {}", voter_votes_pubkey);
 
     super::set_status("Adding the voter...");
 
@@ -43,20 +37,12 @@ pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: 
             }
         }
 
-        let recent_blockhash = match connection().send_up_msg(UpMsg::GetRecentBlockhash).await {
-            Ok(cor_id) => {
-                wait_for_cor_id(cor_id).await;
-                let recent_blockhash = app::recent_blockhash().get().unwrap_throw();
-                println!("recent_blockhash: {:#?}", recent_blockhash);
-                recent_blockhash
-            },
+        let recent_blockhash = match solana_helpers::recent_blockhash().await {
+            Ok(blockhash) => blockhash,
             Err(error) => {
-                let error = error.to_string();
-                eprintln!("recent_blockhash request failed: {}", error);
                 return super::set_status(error);
             }
         };
-
         let message = Message::new(
             &[add_voter_ix], 
             None

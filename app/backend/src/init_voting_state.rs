@@ -30,7 +30,6 @@ pub async fn init_voting_state() -> VotingState {
 
     let init_voting_ix = voting_instruction::init_voting(
         &voting_owner_pubkey, 
-        solana_helpers::voting_state_pubkey(),
     );
     
     let recent_blockhash = solana_helpers::request_recent_blockhash().await;
