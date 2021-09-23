@@ -27,8 +27,7 @@ pub enum VotingInstruction {
     ///
     /// 0. `[signer]` The voting owner account.
     /// 1. `[writable]` The voter votes account.
-    /// 2. `[]` The voting program.
-    /// 3. `[]` The system program.
+    /// 2. `[]` The system program.
     AddVoter {
         voter_pubkey: Pubkey,
     },
@@ -39,7 +38,9 @@ pub enum VotingInstruction {
     ///
     /// Accounts expected:
     ///
-    /// 0. `[signer]` The fee payer account.
+    /// 0. `[writable]` The party account.
+    /// 1. `[writable]` The voting state account.
+    /// 2. `[]` The system program.
     AddParty {
         /// The party name max length is 128 bytes.
         name: String,
@@ -91,12 +92,28 @@ pub fn add_voter(
     let account_metas = vec![
         AccountMeta::new(*voting_owner_pubkey, true),
         AccountMeta::new(*voter_votes_pubkey, false),
-        AccountMeta::new_readonly(crate::id(), false),
         AccountMeta::new_readonly(system_program::id(), false),
     ];
     Instruction::new_with_borsh(
         crate::id(),
         &VotingInstruction::AddVoter { voter_pubkey: *voter_pubkey },
+        account_metas,
+    )
+}
+
+pub fn add_party(
+    party_pubkey: &Pubkey,
+    party_name: &str,
+    voting_state_pubkey: &Pubkey,
+) -> Instruction {
+    let account_metas = vec![
+        AccountMeta::new(*party_pubkey, false),
+        AccountMeta::new(*voting_state_pubkey, false),
+        AccountMeta::new_readonly(system_program::id(), false),
+    ];
+    Instruction::new_with_borsh(
+        crate::id(),
+        &VotingInstruction::AddParty { name: party_name.to_owned() },
         account_metas,
     )
 }

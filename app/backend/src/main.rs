@@ -25,7 +25,7 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
     let UpMsgRequest { up_msg, cor_id, session_id, .. } = req;
 
     let down_msg = match up_msg {
-        UpMsg::AddVoter { voter_pubkey, transaction } => {
+        UpMsg::AddVoter { pubkey, transaction } => {
             println!("Waiting for add_voter transaction...");
 
             let transaction_result = task::spawn_blocking(move || {
@@ -36,7 +36,7 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
             let voter_pubkey_or_error = match transaction_result {
                 Ok(_) => {
                     println!("add_voter transaction committed");
-                    Ok(voter_pubkey)
+                    Ok(pubkey)
                 },
                 Err(error) => {
                     eprintln!("add_voter transaction rollbacked ({:?})", error);
@@ -45,15 +45,31 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
             };
             DownMsg::VoterAdded { voter_pubkey_or_error }
         },
-        UpMsg::AddParty { name } => {
-            let party = Party {
-                name: name.clone(),
-                pubkey: Pubkey::new_unique(),
-                votes: 0,
+        UpMsg::AddParty { name, pubkey, transaction } => {
+            println!("Waiting for add_party transaction...");
+
+            let transaction_result = task::spawn_blocking(move || {
+                solana_helpers::client().send_and_confirm_transaction(&transaction)
+            }).await.expect("add_party transaction task failed");
+
+            let party_name_or_error = match transaction_result {
+                Ok(_) => {
+                    println!("add_party transaction committed");
+                    let party = Party {
+                        name: name.clone(),
+                        pubkey,
+                        votes: 0,
+                    };
+                    let down_msg = DownMsg::PartyAddedBroadcasted { party };
+                    sessions::broadcast_down_msg(&down_msg, cor_id).await;
+                    Ok(name)
+                },
+                Err(error) => {
+                    eprintln!("add_party transaction rollbacked ({:?})", error);
+                    Err(error.to_string())
+                },
             };
-            let down_msg = DownMsg::PartyAddedBroadcasted { party };
-            sessions::broadcast_down_msg(&down_msg, cor_id).await;
-            DownMsg::PartyAdded { name }
+            DownMsg::PartyAdded { party_name_or_error }
         },
         UpMsg::GetParties => DownMsg::PartiesLoaded {parties: vec![
             Party {

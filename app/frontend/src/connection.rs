@@ -12,7 +12,9 @@ pub fn connection() -> &'static Connection<UpMsg, DownMsg> {
             DownMsg::VoterAdded { voter_pubkey_or_error} => {
                 add_voter_page::voter_added(voter_pubkey_or_error)
             },
-            DownMsg::PartyAdded { name } => add_party_page::party_added(name),
+            DownMsg::PartyAdded { party_name_or_error } => { 
+                add_party_page::party_added(party_name_or_error)
+            },
             DownMsg::PartyAddedBroadcasted { party } => parties_page::push_party(party),
             DownMsg::PartiesLoaded { parties } => parties_page::convert_and_set_parties(parties),
             DownMsg::DeadlineLoaded { timestamp } => parties_page::set_deadline(timestamp),

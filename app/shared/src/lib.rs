@@ -11,8 +11,8 @@ use solana_sdk::{
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(crate = "serde")]
 pub enum UpMsg {
-    AddVoter { voter_pubkey: Pubkey, transaction: Transaction },
-    AddParty { name: String },
+    AddVoter { pubkey: Pubkey, transaction: Transaction },
+    AddParty { name: String, pubkey: Pubkey, transaction: Transaction },
     GetParties,
     GetDeadline,
     Vote { party_pubkey: Pubkey, positive: bool },
@@ -26,7 +26,7 @@ pub enum UpMsg {
 #[serde(crate = "serde")]
 pub enum DownMsg {
     VoterAdded { voter_pubkey_or_error: Result<Pubkey, String> },
-    PartyAdded { name: String },
+    PartyAdded { party_name_or_error: Result<String, String> },
     PartyAddedBroadcasted { party: Party },
     PartiesLoaded { parties: Vec<Party> },
     DeadlineLoaded { timestamp: i64 },

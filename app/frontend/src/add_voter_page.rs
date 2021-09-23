@@ -1,8 +1,8 @@
-use zoon::{*, eprintln, format};
+use zoon::{*,format};
 use std::{borrow::Cow, str::FromStr};
 use solana_sdk::{
     pubkey::Pubkey,
-    signer::keypair::{Keypair, read_keypair},
+    signer::keypair::read_keypair,
 };
 
 mod add_voter_transaction;
@@ -35,9 +35,10 @@ fn voter_pubkey() -> &'static Mutable<String> {
 //   Commands
 // ------ ------
 
-pub fn set_status(new_status: String) {
-    status().set(Some(Cow::from(new_status)))
+pub fn set_status(new_status: impl Into<Cow<'static, str>>) {
+    status().set(Some(new_status.into()))
 }
+
 
 fn add_voter() {
     status().take();
@@ -47,14 +48,14 @@ fn add_voter() {
     let voting_owner_keypair = match read_keypair(&mut voting_owner_keypair.as_bytes()) {
         Ok(keypair) => keypair,
         _ => {
-            status().set(Some(Cow::from("Sorry, invalid private key.")));
+            set_status("Sorry, invalid private key.");
             return;
         }
     };
     let voter_pubkey = match Pubkey::from_str(&voter_pubkey) {
         Ok(pubkey) => pubkey,
         _ => {
-            status().set(Some(Cow::from("Sorry, invalid PubKey.")));
+            set_status("Sorry, invalid PubKey.");
             return;
         }
     };

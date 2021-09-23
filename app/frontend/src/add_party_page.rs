@@ -1,8 +1,8 @@
-use zoon::{*, eprintln, format};
+use zoon::{*, format};
 use std::borrow::Cow;
-use shared::UpMsg;
-use crate::connection::connection;
+use solana_sdk::signer::keypair::read_keypair;
 
+mod add_party_transaction;
 mod view;
 
 // ------ ------
@@ -16,36 +16,43 @@ fn status() -> &'static Mutable<Option<Cow<'static, str>>> {
 
 #[static_ref]
 fn fee_payer_private_key() -> &'static Mutable<String> {
-    Mutable::new(String::new())
+    // @TODO remove hardcoded value
+    // Mutable::new(String::new())
+    Mutable::new("[142,26,26,248,251,208,51,10,116,93,98,146,211,32,153,244,188,50,216,153,186,31,43,22,175,132,223,117,141,144,139,189,36,44,206,11,125,213,237,45,134,87,176,198,5,181,173,165,18,254,34,219,78,194,168,66,63,223,123,6,165,8,205,183]".to_owned())
 }
 
 #[static_ref]
 fn party_name() -> &'static Mutable<String> {
-    Mutable::new(String::new())
+    // @TODO remove hardcoded value
+    // Mutable::new(String::new())
+    Mutable::new("My Party".to_owned())
 }
 
 // ------ ------
 //   Commands
 // ------ ------
 
-pub fn set_status(new_status: String) {
-    status().set(Some(Cow::from(new_status)))
+pub fn set_status(new_status: impl Into<Cow<'static, str>>) {
+    status().set(Some(new_status.into()))
 }
 
 fn add_party() {
     status().take();
-    if fee_payer_private_key().map(String::is_empty) || party_name().map(String::is_empty) {
-        status().set(Some(Cow::from("Sorry, invalid private key or name.")));
+    let fee_payer_keypair = fee_payer_private_key().lock_ref();
+    let party_name = party_name().lock_ref();
+
+    let fee_payer_keypair = match read_keypair(&mut fee_payer_keypair.as_bytes()) {
+        Ok(keypair) => keypair,
+        _ => {
+            status().set(Some(Cow::from("Sorry, invalid private key.")));
+            return;
+        }
+    };
+    if party_name.is_empty() {
+        status().set(Some(Cow::from("Sorry, invalid name.")));
         return;
     }
-    Task::start(async {
-        let msg = UpMsg::AddParty { name: party_name().get_cloned() };
-        if let Err(error) = connection().send_up_msg(msg).await {
-            let error = error.to_string();
-            eprintln!("add_party request failed: {}", error);
-            set_status(error);
-        }
-    });
+    add_party_transaction::create_and_send_transaction(fee_payer_keypair, party_name.to_owned());
 }
 
 fn set_fee_payer_private_key(private_key: String) {
@@ -56,9 +63,16 @@ fn set_party_name(name: String) {
     party_name().set_neq(name)
 }
 
-pub fn party_added(name: String) {
-    set_status(format!("Party '{}' added.", name));
-    party_name().take();
+pub fn party_added(party_name_or_error: Result<String, String>) {
+    match party_name_or_error {
+        Ok(name) => {
+            set_status(format!("Party '{}' added.", name));
+            party_name().take();
+        },
+        Err(error) => {
+            set_status(error);
+        }
+    }
 }
 
 // ------ ------

@@ -24,7 +24,7 @@ pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: 
         &voter_pubkey
     );
 
-    super::set_status("Adding the voter...".to_owned());
+    super::set_status("Adding the voter...");
 
     Task::start(async move {
         let up_msg = UpMsg::GetAccount {
@@ -39,7 +39,7 @@ pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: 
                 println!("voter_votes_account: {:#?}", account);
                 println!("voter_votes_account data: {:#?}", voter_votes_data);
 
-                return super::set_status("The voter is already registered.".to_owned());
+                return super::set_status("The voter is already registered.");
             }
         }
 
@@ -68,7 +68,7 @@ pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: 
         );
 
         let up_msg = UpMsg::AddVoter {
-            voter_pubkey,
+            pubkey: voter_pubkey,
             transaction,
         };
         if let Err(error) = connection().send_up_msg(up_msg).await {
