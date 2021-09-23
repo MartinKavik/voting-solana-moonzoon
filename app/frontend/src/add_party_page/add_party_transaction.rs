@@ -4,7 +4,7 @@ use solana_sdk::{
     pubkey::Pubkey,
     transaction::Transaction,
     message::Message,
-    signer::keypair::Keypair,
+    signer::{Signer, keypair::Keypair},
 };
 use voting_program::{instruction as voting_instruction, state::{VotingState}};
 use shared::UpMsg;
@@ -58,6 +58,7 @@ pub fn create_and_send_transaction(fee_payer_keypair: Keypair, party_name: Strin
         println!("party_pubkey: {}", party_pubkey);
 
         let add_party_ix = voting_instruction::add_party(
+            &fee_payer_keypair.pubkey(),
             &party_pubkey, 
             &party_name,
             &voting_state_pubkey()

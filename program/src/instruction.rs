@@ -6,7 +6,7 @@ use solana_program::{
     system_program,
 };
 use borsh::{BorshDeserialize, BorshSerialize};
-use crate::error::VotingError::InvalidInstruction;
+use crate::error::VotingError;
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub enum VotingInstruction {
@@ -16,7 +16,7 @@ pub enum VotingInstruction {
     ///
     /// Accounts expected:
     ///
-    /// 0. `[signer]` The voting owner account.
+    /// 0. `[writable, signer]` The voting owner account.
     /// 1. `[writable]` The voting state account.
     InitVoting,
 
@@ -25,7 +25,7 @@ pub enum VotingInstruction {
     ///
     /// Accounts expected:
     ///
-    /// 0. `[signer]` The voting owner account.
+    /// 0. `[writable, signer]` The voting owner account.
     /// 1. `[writable]` The voter votes account.
     /// 2. `[]` The system program.
     AddVoter {
@@ -38,11 +38,11 @@ pub enum VotingInstruction {
     ///
     /// Accounts expected:
     ///
-    /// 0. `[writable]` The party account.
-    /// 1. `[writable]` The voting state account.
-    /// 2. `[]` The system program.
+    /// 0. `[writable, signer]` The fee payer account.
+    /// 1. `[writable]` The party account.
+    /// 2. `[writable]` The voting state account.
+    /// 3. `[]` The system program.
     AddParty {
-        /// The party name max length is 128 bytes.
         name: String,
     },
 
@@ -51,7 +51,7 @@ pub enum VotingInstruction {
     ///
     /// Accounts expected:
     ///
-    /// 0. `[signer]` The eligible voter account.
+    /// 0. `[writable, signer]` The eligible voter account.
     /// 1. `[]` The voted party account.
     Vote {
         /// The party will receive one negative or positive vote.
@@ -64,7 +64,7 @@ impl VotingInstruction {
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
         Self::try_from_slice(&input).map_err(|error| {
             msg!(&error.to_string());
-            InvalidInstruction.into()
+            VotingError::InvalidInstruction.into()
         })
     }
 }
@@ -102,11 +102,13 @@ pub fn add_voter(
 }
 
 pub fn add_party(
+    fee_payer: &Pubkey,
     party_pubkey: &Pubkey,
     party_name: &str,
     voting_state_pubkey: &Pubkey,
 ) -> Instruction {
     let account_metas = vec![
+        AccountMeta::new(*fee_payer, true),
         AccountMeta::new(*party_pubkey, false),
         AccountMeta::new(*voting_state_pubkey, false),
         AccountMeta::new_readonly(system_program::id(), false),

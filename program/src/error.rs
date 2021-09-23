@@ -6,11 +6,8 @@ pub enum VotingError {
     #[error("Invalid Instruction")]
     InvalidInstruction,
 
-    #[error("Insufficient Lamports")]
-    InsufficientLamports,
-
-    #[error("Not rent exempt")]
-    NotRentExempt,
+    #[error("The vote is over")]
+    VoteIsOver,
 }
 
 impl From<VotingError> for ProgramError {

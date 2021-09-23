@@ -5,6 +5,9 @@ pub struct Party {
     pub is_initialized: bool,
     pub positive_votes: u32,
     pub negative_votes: u32,
+    // @TODO How to store strings to avoid problems with fixed data length? 
+    // Something like `arrayvec::ArrayString`?
+    pub name: String,
 }
 
 impl Party {
