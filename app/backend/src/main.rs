@@ -1,6 +1,9 @@
 use moon::{*, tokio::task};
 use shared::*;
 use solana_sdk::pubkey::Pubkey;
+use voting_program::state::Party as PartyState;
+use borsh::BorshDeserialize;
+use std::sync::Arc;
 
 mod solana_helpers;
 
@@ -71,23 +74,43 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
             };
             DownMsg::PartyAdded { party_name_or_error }
         },
-        UpMsg::GetParties => DownMsg::PartiesLoaded {parties: vec![
-            Party {
-                name: "Party A".to_owned(),
-                pubkey: Pubkey::new_unique(),
-                votes: 0,
-            },
-            Party {
-                name: "Party B".to_owned(),
-                pubkey: Pubkey::new_unique(),
-                votes: 1,
-            },
-            Party {
-                name: "Party C".to_owned(),
-                pubkey: Pubkey::new_unique(),
-                votes: -2,
-            },
-        ]},
+        UpMsg::GetParties => {
+            let voting_state = solana_helpers::request_voting_state().await.expect("request VotingState failed");
+            println!("Party count: {}", voting_state.party_count);
+
+            let party_pubkeys = (0..voting_state.party_count)
+                .map(|party_index| {
+                    let party_index_bytes = party_index.to_le_bytes();
+                    let seeds = &[b"party", party_index_bytes.as_ref(), solana_helpers::voting_state_pubkey().as_ref()];
+                    Pubkey::find_program_address(seeds, &voting_program::id()).0
+                })
+                .collect::<Vec<_>>();
+
+            let party_pubkeys = Arc::new(party_pubkeys);
+            let party_pubkeys_for_task = Arc::clone(&party_pubkeys);
+
+            let party_accounts = task::spawn_blocking(move || {
+                solana_helpers::client().get_multiple_accounts(&party_pubkeys_for_task)
+                    .expect("get_party_accounts failed")
+            }).await.expect("get_party_accounts task failed");
+
+            let parties = party_accounts
+                .into_iter()
+                .enumerate()
+                .map(|(index, party_account)| {
+                    let party_state = PartyState::try_from_slice(&party_account.unwrap().data)
+                        .expect("cannot deserialize Party");
+
+                    let votes = i64::from(party_state.positive_votes) - i64::from(party_state.negative_votes);
+                    Party {
+                        name: party_state.name,
+                        pubkey: party_pubkeys[index],
+                        votes,
+                    }
+                })
+                .collect();
+            DownMsg::PartiesLoaded { parties }
+        },
         UpMsg::GetDeadline => {
             DownMsg::DeadlineLoaded { timestamp: deadline }
         },
@@ -132,7 +155,9 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
 
 #[moon::main]
 async fn main() -> std::io::Result<()> {
+    println!("voting_state_pubkey: {}", solana_helpers::voting_state_pubkey());
     let voting_state = init_voting_state().await;
+    println!("voting_state_account data {:?}", voting_state);
     let deadline = voting_state.deadline;
 
     let up_msg_handler_wrapper = move |req| {
