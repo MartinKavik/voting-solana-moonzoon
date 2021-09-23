@@ -2,9 +2,11 @@ use zoon::{*, println};
 use shared::{UpMsg, DownMsg};
 use crate::*;
 
+// ------ connection ------
+
 #[static_ref]
 pub fn connection() -> &'static Connection<UpMsg, DownMsg> {
-    Connection::new(|down_msg, _cor_id| {
+    Connection::new(|down_msg, cor_id| {
         println!("DownMsg received: {:#?}", down_msg);
         match down_msg {
             DownMsg::VoterAdded { voter_pubkey_or_error} => {
@@ -22,5 +24,17 @@ pub fn connection() -> &'static Connection<UpMsg, DownMsg> {
                 app::set_recent_blockhash(blockhash);
             }
         }
+        recent_cor_id().set_neq(Some(cor_id));
     })
+}
+
+// ------ wait_for_cor_id ------
+
+#[static_ref]
+fn recent_cor_id() -> &'static Mutable<Option<CorId>> {
+    Mutable::new(None)
+}
+
+pub async fn wait_for_cor_id(cor_id: CorId) {
+    recent_cor_id().signal().wait_for(Some(cor_id)).await;
 }

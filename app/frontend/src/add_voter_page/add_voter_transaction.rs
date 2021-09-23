@@ -8,7 +8,7 @@ use solana_sdk::{
 };
 use voting_program::instruction as voting_instruction;
 use shared::UpMsg;
-use crate::{connection::connection, app};
+use crate::{connection::{connection, wait_for_cor_id}, app};
 
 pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: Pubkey) {
     let voting_owner_pubkey = voting_owner_keypair.pubkey();
@@ -26,16 +26,19 @@ pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: 
     );
 
     Task::start(async move {
-        // @TODO refactor
-        let mut blockhash_stream = app::recent_blockhash().signal().to_stream();
-        let _ = blockhash_stream.next().await;
-        if let Err(error) = connection().send_up_msg(UpMsg::RecentBlockhash).await {
-            let error = error.to_string();
-            eprintln!("recent_blockhash request failed: {}", error);
-            super::set_status(error);
-        }
-        let recent_blockhash = blockhash_stream.next().await.unwrap_throw().unwrap_throw();
-        println!("recent_blockhash: {:#?}", recent_blockhash);
+        let recent_blockhash = match connection().send_up_msg(UpMsg::RecentBlockhash).await {
+            Ok(cor_id) => {
+                wait_for_cor_id(cor_id).await;
+                let recent_blockhash = app::recent_blockhash().get().unwrap_throw();
+                println!("recent_blockhash: {:#?}", recent_blockhash);
+                recent_blockhash
+            },
+            Err(error) => {
+                let error = error.to_string();
+                eprintln!("recent_blockhash request failed: {}", error);
+                return super::set_status(error);
+            }
+        };
 
         let message = Message::new(
             &[add_voter_ix], 
