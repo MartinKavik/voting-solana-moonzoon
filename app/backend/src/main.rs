@@ -1,5 +1,6 @@
 use moon::{*, tokio::task};
 use shared::*;
+use solana_sdk::pubkey::Pubkey;
 
 mod solana_helpers;
 
@@ -26,9 +27,12 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
     let down_msg = match up_msg {
         UpMsg::AddVoter { voter_pubkey, transaction } => {
             println!("Waiting for add_voter transaction...");
+
             let transaction_result = task::spawn_blocking(move || {
+                // @TODO_QUESTION Why does it take so long? Would a different `commitment` or something else help?
                 solana_helpers::client().send_and_confirm_transaction(&transaction)
             }).await.expect("add_voter transaction task failed");
+
             let voter_pubkey_or_error = match transaction_result {
                 Ok(_) => {
                     println!("add_voter transaction committed");
@@ -44,7 +48,7 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
         UpMsg::AddParty { name } => {
             let party = Party {
                 name: name.clone(),
-                pubkey: "11111NEWPARTY1111111111".to_owned(),
+                pubkey: Pubkey::new_unique(),
                 votes: 0,
             };
             let down_msg = DownMsg::PartyAddedBroadcasted { party };
@@ -54,17 +58,17 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
         UpMsg::GetParties => DownMsg::PartiesLoaded {parties: vec![
             Party {
                 name: "Party A".to_owned(),
-                pubkey: (0..45).map(|_| 'A').collect(),
+                pubkey: Pubkey::new_unique(),
                 votes: 0,
             },
             Party {
                 name: "Party B".to_owned(),
-                pubkey: (0..45).map(|_| 'B').collect(),
+                pubkey: Pubkey::new_unique(),
                 votes: 1,
             },
             Party {
                 name: "Party C".to_owned(),
-                pubkey: (0..45).map(|_| 'C').collect(),
+                pubkey: Pubkey::new_unique(),
                 votes: -2,
             },
         ]},
@@ -81,12 +85,25 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
             let status = format!(
                 "{} voted for '{}***'.",
                 if positive { "Positively" } else { "Negatively" }, 
-                party_pubkey.chars().take(5).collect::<String>()
+                party_pubkey.to_string().chars().take(5).collect::<String>()
             );
             DownMsg::VotesChanged { status }
         },
-        UpMsg::RecentBlockhash => {
+        UpMsg::GetRecentBlockhash => {
             DownMsg::RecentBlockhashLoaded { blockhash: solana_helpers::request_recent_blockhash().await }
+        }
+        UpMsg::GetAccount { account_pubkey } => {
+            let account = task::spawn_blocking(move || {
+                solana_helpers::client()
+                    .get_account(&account_pubkey)
+                    .map_err(|error| error.to_string())
+            })
+            .await;
+            let account = match account {
+                Ok(account) => account,
+                Err(error) => Err(error.to_string())
+            };
+            DownMsg::AccountLoaded { account }
         }
     };
 

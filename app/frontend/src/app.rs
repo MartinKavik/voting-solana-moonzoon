@@ -1,5 +1,5 @@
 use zoon::*;
-use solana_sdk::hash::Hash;
+use solana_sdk::{hash::Hash, account::Account};
 
 mod view;
 
@@ -29,6 +29,11 @@ pub fn recent_blockhash() -> &'static Mutable<Option<Hash>> {
     Mutable::new(None)
 }
 
+#[static_ref]
+pub fn account() -> &'static Mutable<Option<Result<Account, String>>> {
+    Mutable::new(None)
+}
+
 // ------ ------
 //    Signals
 // ------ ------
@@ -43,6 +48,10 @@ pub fn set_page_id(new_page_id: PageId) {
 
 pub fn set_recent_blockhash(blockhash: Hash) {
     recent_blockhash().set_neq(Some(blockhash));
+}
+
+pub fn set_account(new_account: Result<Account, String>) {
+    account().set(Some(new_account));
 }
 
 // ------ ------

@@ -1189,6 +1189,7 @@ dependencies = [
 name = "frontend"
 version = "0.1.0"
 dependencies = [
+ "borsh",
  "shared",
  "solana-sdk",
  "voting_program",

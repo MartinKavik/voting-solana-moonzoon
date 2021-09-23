@@ -3,6 +3,7 @@ use solana_sdk::{
     hash::Hash,
     transaction::Transaction,
     pubkey::Pubkey,
+    account::Account,
 };
 
 // ------ UpMsg ------
@@ -14,8 +15,9 @@ pub enum UpMsg {
     AddParty { name: String },
     GetParties,
     GetDeadline,
-    Vote { party_pubkey: String, positive: bool },
-    RecentBlockhash,
+    Vote { party_pubkey: Pubkey, positive: bool },
+    GetRecentBlockhash,
+    GetAccount { account_pubkey: Pubkey }
 }
 
 // ------ DownMsg ------
@@ -29,8 +31,9 @@ pub enum DownMsg {
     PartiesLoaded { parties: Vec<Party> },
     DeadlineLoaded { timestamp: i64 },
     VotesChanged { status: String },
-    VotesChangedBroadcasted { party_pubkey: String, votes: i64 },
+    VotesChangedBroadcasted { party_pubkey: Pubkey, votes: i64 },
     RecentBlockhashLoaded { blockhash: Hash },
+    AccountLoaded { account: Result<Account, String> }
 }
 
 // -- Party --
@@ -38,7 +41,7 @@ pub enum DownMsg {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(crate = "serde")]
 pub struct Party {
-    pub pubkey: String,
+    pub pubkey: Pubkey,
     pub name: String,
     pub votes: i64,
 }

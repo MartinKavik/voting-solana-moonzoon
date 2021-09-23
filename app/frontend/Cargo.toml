@@ -17,6 +17,7 @@ crate-type = ["cdylib"]
 zoon = { path = "../../../MoonZoon/crates/zoon/" }
 shared = { path = "../shared", features = ["frontend"] }
 voting_program = { path = "../../program", features = ["no-entrypoint"]  }
+borsh = "=0.9.1"
 
 # @TODO_QUESTION Replace with stable solana-* versions. 
 # We need newer memmap2 (it's a transitive depedency), 

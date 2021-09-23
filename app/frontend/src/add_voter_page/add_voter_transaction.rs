@@ -6,9 +6,10 @@ use solana_sdk::{
     message::Message,
     signer::{Signer, keypair::Keypair},
 };
-use voting_program::instruction as voting_instruction;
+use voting_program::{instruction as voting_instruction, state::VoterVotes};
 use shared::UpMsg;
 use crate::{connection::{connection, wait_for_cor_id}, app};
+use borsh::BorshDeserialize;
 
 pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: Pubkey) {
     let voting_owner_pubkey = voting_owner_keypair.pubkey();
@@ -17,16 +18,32 @@ pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: 
     let voter_votes_pubkey = Pubkey::find_program_address(seeds, &voting_program::id()).0;
     println!("voter_votes_pubkey: {}", voter_votes_pubkey);
 
-    // @TODO Check if the account voter_votes already exists. Then set an error status and return.
-
     let add_voter_ix = voting_instruction::add_voter(
         &voting_owner_pubkey, 
         &voter_votes_pubkey,
         &voter_pubkey
     );
 
+    super::set_status("Adding the voter...".to_owned());
+
     Task::start(async move {
-        let recent_blockhash = match connection().send_up_msg(UpMsg::RecentBlockhash).await {
+        let up_msg = UpMsg::GetAccount {
+            account_pubkey: voter_votes_pubkey,
+        };
+        if let Ok(cor_id) = connection().send_up_msg(up_msg).await {
+            wait_for_cor_id(cor_id).await;
+            if let Some(Ok(account)) = app::account().lock_ref().as_ref() {
+                let voter_votes_data = VoterVotes::try_from_slice(&account.data)
+                    .expect("failed to deserialize VoterVotes account data");
+
+                println!("voter_votes_account: {:#?}", account);
+                println!("voter_votes_account data: {:#?}", voter_votes_data);
+
+                return super::set_status("The voter is already registered.".to_owned());
+            }
+        }
+
+        let recent_blockhash = match connection().send_up_msg(UpMsg::GetRecentBlockhash).await {
             Ok(cor_id) => {
                 wait_for_cor_id(cor_id).await;
                 let recent_blockhash = app::recent_blockhash().get().unwrap_throw();

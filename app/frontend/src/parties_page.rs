@@ -2,6 +2,7 @@ use zoon::{*, eprintln};
 use std::{sync::Arc, borrow::Cow};
 use shared::{self, UpMsg};
 use crate::connection::connection;
+use solana_sdk::pubkey::Pubkey;
 
 mod view;
 
@@ -10,7 +11,7 @@ mod view;
 // ------ ------
 
 struct Party {
-    pubkey: String,
+    pubkey: Pubkey,
     name: String,
     votes: Mutable<i64>,
 }
@@ -84,7 +85,7 @@ pub fn set_deadline(timestamp: i64) {
     deadline().set_neq(Some(timestamp));
 }
 
-pub fn set_votes(party_pubkey: String, votes: i64) {
+pub fn set_votes(party_pubkey: Pubkey, votes: i64) {
     let parties = parties().lock_ref();
     let party = parties.iter().find(|party| party.pubkey == party_pubkey);
     if let Some(party) = party {
@@ -92,7 +93,7 @@ pub fn set_votes(party_pubkey: String, votes: i64) {
     }
 }
 
-fn vote(party_pubkey: String, positive: bool) {
+fn vote(party_pubkey: Pubkey, positive: bool) {
     Task::start(async move {
         let msg = UpMsg::Vote {
             party_pubkey,

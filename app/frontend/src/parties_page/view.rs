@@ -1,6 +1,7 @@
 use zoon::*;
 use crate::theme::Theme;
 use std::{sync::Arc, cmp::Ordering};
+use solana_sdk::pubkey::Pubkey;
 
 pub fn page() -> impl Element {
     Column::new()
@@ -122,7 +123,7 @@ fn vote_button(party: Arc<super::Party>, positive: bool) -> impl Element {
         .s(Width::new(40))
         .s(Height::new(40))
         .on_hovered_change(move |is_hovered| hovered.set_neq(is_hovered))
-        .on_click(move || super::vote(party.pubkey.clone(), positive))
+        .on_click(move || super::vote(party.pubkey, positive))
         .label(El::new().s(Align::center()).child(if positive { "+" } else { "-" }))
 }
 
@@ -131,7 +132,7 @@ fn party_data(party: Arc<super::Party>) -> impl Element {
         .s(Width::fill())
         .s(Spacing::new(8))
         .item(party_name_and_votes(party.clone()))
-        .item(party_pubkey(&party.pubkey))
+        .item(party_pubkey(party.pubkey))
 }
 
 fn party_name_and_votes(party: Arc<super::Party>) -> impl Element {
@@ -160,12 +161,12 @@ fn party_votes(votes: &Mutable<i64>) -> impl Element {
         .child(Text::with_signal(votes.signal()))
 }
 
-fn party_pubkey(pubkey: &str) -> impl Element {
+fn party_pubkey(pubkey: Pubkey) -> impl Element {
     TextInput::new()
         .s(Width::fill())
         .s(Background::new().color(Theme::Gray))
         .s(Padding::all(3))
         .label_hidden("party public key")
         .read_only(true)
-        .text(pubkey)
+        .text(&pubkey.to_string())
 }

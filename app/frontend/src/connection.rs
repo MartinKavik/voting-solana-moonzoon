@@ -23,6 +23,7 @@ pub fn connection() -> &'static Connection<UpMsg, DownMsg> {
             DownMsg::RecentBlockhashLoaded { blockhash } => {
                 app::set_recent_blockhash(blockhash);
             }
+            DownMsg::AccountLoaded { account } => app::set_account(account),
         }
         recent_cor_id().set_neq(Some(cor_id));
     })
