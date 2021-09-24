@@ -115,7 +115,7 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
         UpMsg::GetDeadline => {
             DownMsg::DeadlineLoaded { timestamp: deadline }
         },
-        UpMsg::Vote { party_pubkey, votes, positively_voted, transaction } => {
+        UpMsg::Vote { party_pubkey, positive, transaction } => {
             println!("Waiting for vote transaction...");
 
             let transaction_result = task::spawn_blocking(move || {
@@ -127,12 +127,12 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
                     println!("vote transaction committed");
                     let down_msg = DownMsg::VotesChangedBroadcasted {
                         party_pubkey,
-                        votes,
+                        positive,
                     };
                     sessions::broadcast_down_msg(&down_msg, cor_id).await;
                     format!(
                         "{} voted for '{}***'.",
-                        if positively_voted { "Positively" } else { "Negatively" }, 
+                        if positive { "Positively" } else { "Negatively" }, 
                         party_pubkey.to_string().chars().take(5).collect::<String>()
                     )
                 },

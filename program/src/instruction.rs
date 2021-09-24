@@ -151,7 +151,7 @@ pub fn vote(
     voting_state_pubkey: &Pubkey,
     party_pubkey: &Pubkey,
     positive: bool,
-) -> Instruction {
+) -> (Instruction, Pubkey, Pubkey) {
     let seeds = &[b"voter_votes".as_ref(), &voter_pubkey.as_ref(), &voting_state_pubkey.as_ref()];
     let voter_votes_pubkey = Pubkey::find_program_address(seeds, &crate::id()).0;
 
@@ -171,9 +171,10 @@ pub fn vote(
         AccountMeta::new(*party_pubkey, false),
         AccountMeta::new_readonly(system_program::id(), false),
     ];
-    Instruction::new_with_borsh(
+    let ix = Instruction::new_with_borsh(
         crate::id(),
         &VotingInstruction::Vote { positive },
         account_metas,
-    )
+    );
+    (ix, voter_votes_pubkey, voter_voted_pubkey)
 }

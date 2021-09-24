@@ -15,7 +15,7 @@ pub enum UpMsg {
     AddParty { name: String, pubkey: Pubkey, transaction: Transaction },
     GetParties,
     GetDeadline,
-    Vote { party_pubkey: Pubkey, positively_voted: bool, votes: i64, transaction: Transaction },
+    Vote { party_pubkey: Pubkey, positive: bool, transaction: Transaction },
     GetRecentBlockhash,
     GetAccount { account_pubkey: Pubkey }
 }
@@ -31,7 +31,7 @@ pub enum DownMsg {
     PartiesLoaded { parties: Vec<Party> },
     DeadlineLoaded { timestamp: i64 },
     VotesChanged { status: String },
-    VotesChangedBroadcasted { party_pubkey: Pubkey, votes: i64 },
+    VotesChangedBroadcasted { party_pubkey: Pubkey, positive: bool },
     RecentBlockhashLoaded { blockhash: Hash },
     AccountLoaded { account: Result<Account, String> }
 }

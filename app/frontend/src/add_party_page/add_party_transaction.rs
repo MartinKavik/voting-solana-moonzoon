@@ -1,7 +1,6 @@
 use zoon::{*, println, eprintln};
 
 use solana_sdk::{
-    pubkey::Pubkey,
     transaction::Transaction,
     message::Message,
     signer::{Signer, keypair::Keypair},
@@ -10,29 +9,13 @@ use voting_program::{instruction as voting_instruction, state::VotingState};
 use shared::UpMsg;
 use crate::{connection::{connection, wait_for_cor_id}, app, solana_helpers};
 use borsh::BorshDeserialize;
-use std::str::FromStr;
-
-#[static_ref]
-fn voting_owner_pubkey() -> &'static Pubkey {
-    let voting_owner_pubkey = include_str!("../../../../program/keypairs/voting-owner-pubkey");
-    Pubkey::from_str(voting_owner_pubkey.trim()).expect_throw("cannot parse voting-owner-pubkey")
-}
-
-#[static_ref]
-fn voting_state_pubkey() -> &'static Pubkey {
-    Pubkey::create_with_seed(
-        voting_owner_pubkey(),
-        "voting_state",
-        &voting_program::id(),
-    ).expect("failed to create voting_state_pubkey")
-}
 
 pub fn create_and_send_transaction(fee_payer_keypair: Keypair, party_name: String) {
     super::set_status("Adding the party...");
 
     Task::start(async move {
         let up_msg = UpMsg::GetAccount {
-            account_pubkey: *voting_state_pubkey(),
+            account_pubkey: *solana_helpers::voting_state_pubkey(),
         };
         match connection().send_up_msg(up_msg).await {
             Err(error) => return super::set_status(error.to_string()),
@@ -54,7 +37,7 @@ pub fn create_and_send_transaction(fee_payer_keypair: Keypair, party_name: Strin
             &fee_payer_keypair.pubkey(),
             &party_name,
             party_count,
-            &voting_state_pubkey()
+            solana_helpers::voting_state_pubkey()
         );
         println!("party_pubkey: {}", party_pubkey);
 

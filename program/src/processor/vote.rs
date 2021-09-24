@@ -60,7 +60,7 @@ pub fn process(
         if voter_votes.negative_votes == 0 {
             Err(VotingError::NoNegativeVotes)?;
         }
-        if voter_votes.positive_votes > 0 {
+        if voter_votes.positive_votes != 0 {
             Err(VotingError::PositiveVotesNotSpent)?;
         }
     }
@@ -71,8 +71,8 @@ pub fn process(
         Err(ProgramError::UninitializedAccount)?;
     }
 
-    let mut party_account_data = voting_state_account.try_borrow_mut_data()?;
-    let mut party = Party::try_from_slice(&voting_state_account_data)?;
+    let mut party_account_data = party_account.try_borrow_mut_data()?;
+    let mut party = Party::try_from_slice(&party_account_data)?;
 
     if voter_votes.voter_pubkey != *voter_account.key {
         Err(VotingError::IllegalVoter)?;
@@ -90,8 +90,8 @@ pub fn process(
         &party_account.key.as_ref(),
         &voting_state_account.key.as_ref(),
     ];
-    let (expected_party_pubkey, bump_seed) = Pubkey::find_program_address(seeds, program_id);
-    if expected_party_pubkey != *party_account.key {
+    let (expected_voter_votes_pubkey, bump_seed) = Pubkey::find_program_address(seeds, program_id);
+    if expected_voter_votes_pubkey != *voter_voted_account.key {
         Err(ProgramError::InvalidSeeds)?;
     }
 

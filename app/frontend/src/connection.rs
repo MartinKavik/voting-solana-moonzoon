@@ -19,8 +19,8 @@ pub fn connection() -> &'static Connection<UpMsg, DownMsg> {
             DownMsg::PartiesLoaded { parties } => parties_page::convert_and_set_parties(parties),
             DownMsg::DeadlineLoaded { timestamp } => parties_page::set_deadline(timestamp),
             DownMsg::VotesChanged { status } => parties_page::set_status(status),
-            DownMsg::VotesChangedBroadcasted { party_pubkey , votes } => {
-                parties_page::set_votes(party_pubkey, votes);
+            DownMsg::VotesChangedBroadcasted { party_pubkey , positive } => {
+                parties_page::add_vote(party_pubkey, positive);
             },
             DownMsg::RecentBlockhashLoaded { blockhash } => {
                 app::set_recent_blockhash(blockhash);

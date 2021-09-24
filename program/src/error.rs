@@ -3,34 +3,34 @@ use solana_program::program_error::ProgramError;
 
 #[derive(Error, Debug, Copy, Clone)]
 pub enum VotingError {
-    #[error("Invalid Instruction")]
+    #[error("invalid Instruction")]
     InvalidInstruction,
 
-    #[error("Illegal voting owner")]
+    #[error("illegal voting owner")]
     IllegalVotingOwner,
 
-    #[error("Illegal voter")]
+    #[error("illegal voter")]
     IllegalVoter,
 
-    #[error("Illegal voting state")]
+    #[error("illegal voting state")]
     IllegalVotingState,
 
-    #[error("The vote is over")]
+    #[error("the vote is over")]
     VoteIsOver,
 
-    #[error("The voter is not eligible for voting")]
+    #[error("the voter is not eligible for voting")]
     NotEligibleForVoting,
 
-    #[error("The voter already voted for the selected party")]
+    #[error("the voter already voted for the selected party")]
     AlreadyVoted,
 
-    #[error("No positive votes left")]
+    #[error("no positive votes left")]
     NoPositiveVotes,
 
-    #[error("No negative votes left")]
+    #[error("no negative votes left")]
     NoNegativeVotes,
 
-    #[error("Positive votes have to be spent before negative voting")]
+    #[error("positive votes have to be spent before the negative ones")]
     PositiveVotesNotSpent,
 }
 

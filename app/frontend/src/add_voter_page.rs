@@ -28,7 +28,7 @@ fn voting_owner_private_key() -> &'static Mutable<String> {
 fn voter_pubkey() -> &'static Mutable<String> {
     // @TODO remove hardcoded value
     // Mutable::new(String::new())
-    Mutable::new("DzwqcC4NJXzUw4JghX47XGtSwHpL8nNy37SR2WSk3Udu".to_owned())
+    Mutable::new("3SDJZWXFwbkSCy2tVrEpffG7Vq9dxTxguAM3vvjewr1L".to_owned())
 }
 
 // ------ ------

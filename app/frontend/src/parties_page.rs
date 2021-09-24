@@ -91,11 +91,11 @@ pub fn set_deadline(timestamp: i64) {
     deadline().set_neq(Some(timestamp));
 }
 
-pub fn set_votes(party_pubkey: Pubkey, votes: i64) {
+pub fn add_vote(party_pubkey: Pubkey, positive: bool) {
     let parties = parties().lock_ref();
     let party = parties.iter().find(|party| party.pubkey == party_pubkey);
     if let Some(party) = party {
-        party.votes.set_neq(votes);
+        party.votes.update(|votes| if positive { votes + 1 } else { votes - 1 });
     }
 }
 
