@@ -1,14 +1,11 @@
-use zoon::{*, eprintln};
-use std::{sync::Arc, borrow::Cow};
-use shared::{self, UpMsg};
 use crate::connection::connection;
-use solana_sdk::{
-    pubkey::Pubkey,
-    signer::keypair::read_keypair,
-};
+use shared::{self, UpMsg};
+use solana_sdk::{pubkey::Pubkey, signer::keypair::read_keypair};
+use std::{borrow::Cow, sync::Arc};
+use zoon::{eprintln, *};
 
-mod vote_transaction;
 mod view;
+mod vote_transaction;
 
 // ------ ------
 //     Types
@@ -95,7 +92,9 @@ pub fn add_vote(party_pubkey: Pubkey, positive: bool) {
     let parties = parties().lock_ref();
     let party = parties.iter().find(|party| party.pubkey == party_pubkey);
     if let Some(party) = party {
-        party.votes.update(|votes| if positive { votes + 1 } else { votes - 1 });
+        party
+            .votes
+            .update(|votes| if positive { votes + 1 } else { votes - 1 });
     }
 }
 
@@ -110,11 +109,7 @@ fn vote(party_pubkey: Pubkey, positive: bool) {
             return;
         }
     };
-    vote_transaction::create_and_send_transaction(
-        voter_keypair,
-        party_pubkey, 
-        positive,
-    );
+    vote_transaction::create_and_send_transaction(voter_keypair, party_pubkey, positive);
 }
 
 fn set_voter_private_key(private_key: String) {

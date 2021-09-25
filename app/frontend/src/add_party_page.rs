@@ -1,6 +1,6 @@
-use zoon::{*, format};
-use std::borrow::Cow;
 use solana_sdk::signer::keypair::read_keypair;
+use std::borrow::Cow;
+use zoon::{format, *};
 
 mod add_party_transaction;
 mod view;
@@ -68,7 +68,7 @@ pub fn party_added(party_name_or_error: Result<String, String>) {
         Ok(name) => {
             set_status(format!("Party '{}' added.", name));
             party_name().take();
-        },
+        }
         Err(error) => {
             set_status(error);
         }

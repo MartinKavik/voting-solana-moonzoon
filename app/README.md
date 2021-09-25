@@ -10,7 +10,7 @@
 
 1. Install `mzoon` to `cargo_install_root`:
     ```bash
-    cargo install mzoon --git https://github.com/MartinKavik/MoonZoon --rev 2a14743 --root cargo_install_root --locked
+    cargo install mzoon --git https://github.com/MoonZoon/MoonZoon --rev a1ed81c --root cargo_install_root --locked
     ```
     - _Note:_ There will be faster and simpler ways with pre-compiled binaries.
 
@@ -30,5 +30,3 @@
     ```
     - _Note_: `-o / --open` opens a new tab in your browser.
     - _Note_: The app is much faster when built in the release mode (`-r`).
-
-

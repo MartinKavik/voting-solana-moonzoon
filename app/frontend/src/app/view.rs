@@ -1,5 +1,5 @@
-use zoon::*;
 use crate::{router::Route, theme::Theme};
+use zoon::*;
 
 pub fn root() -> impl Element {
     Column::new()
@@ -37,8 +37,8 @@ fn header_link(route: Route, label: &str, page_id: super::PageId) -> impl Elemen
         .s(Height::fill())
         .s(Padding::new().x(12))
         .s(Borders::new().bottom_signal(hovered_or_selected.map_bool(
-            || Border::new().color(Theme::Green).width(5), 
-            || Border::new().color(Theme::Transparent).width(5), 
+            || Border::new().color(Theme::Green).width(5),
+            || Border::new().color(Theme::Transparent).width(5),
         )))
         .on_hovered_change(move |is_hovered| hovered.set_neq(is_hovered))
         .to(route)

@@ -10,8 +10,7 @@ edition = "2018"
 resolver = "2"
 
 [dependencies]
-# moon = { git = "https://github.com/MartinKavik/MoonZoon", rev = "2a14743" }
-moon = { path = "../../../MoonZoon/crates/moon/" }
+moon = { git = "https://github.com/MoonZoon/MoonZoon", rev = "a1ed81c" }
 shared = { path = "../shared", features = ["backend"] }
 borsh = "=0.9.1"
 # solana-sdk = "=1.7.12"

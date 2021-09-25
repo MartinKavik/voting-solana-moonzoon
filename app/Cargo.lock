@@ -1937,6 +1937,7 @@ dependencies = [
 [[package]]
 name = "moon"
 version = "0.1.0"
+source = "git+https://github.com/MoonZoon/MoonZoon?rev=a1ed81c#a1ed81c891bc97baef51241200c0461a277e42e2"
 dependencies = [
  "actix-files",
  "actix-http",
@@ -1967,6 +1968,7 @@ dependencies = [
 [[package]]
 name = "moonlight"
 version = "0.1.0"
+source = "git+https://github.com/MoonZoon/MoonZoon?rev=a1ed81c#a1ed81c891bc97baef51241200c0461a277e42e2"
 dependencies = [
  "chrono",
  "getrandom 0.2.3",
@@ -2684,6 +2686,7 @@ dependencies = [
 [[package]]
 name = "route_macro"
 version = "0.1.0"
+source = "git+https://github.com/MoonZoon/MoonZoon?rev=a1ed81c#a1ed81c891bc97baef51241200c0461a277e42e2"
 dependencies = [
  "proc-macro2 1.0.29",
  "quote 1.0.9",
@@ -3696,6 +3699,7 @@ dependencies = [
 [[package]]
 name = "static_ref_macro"
 version = "0.1.0"
+source = "git+https://github.com/MoonZoon/MoonZoon?rev=a1ed81c#a1ed81c891bc97baef51241200c0461a277e42e2"
 dependencies = [
  "proc-macro2 1.0.29",
  "quote 1.0.9",
@@ -4455,6 +4459,7 @@ dependencies = [
 [[package]]
 name = "zoon"
 version = "0.1.0"
+source = "git+https://github.com/MoonZoon/MoonZoon?rev=a1ed81c#a1ed81c891bc97baef51241200c0461a277e42e2"
 dependencies = [
  "apply",
  "chrono",

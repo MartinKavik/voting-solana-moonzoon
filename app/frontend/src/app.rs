@@ -1,5 +1,5 @@
+use solana_sdk::{account::Account, hash::Hash};
 use zoon::*;
-use solana_sdk::{hash::Hash, account::Account};
 
 mod view;
 
@@ -61,4 +61,3 @@ pub fn set_account(new_account: Result<Account, String>) {
 pub fn root() -> impl Element {
     view::root()
 }
-

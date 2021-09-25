@@ -13,8 +13,7 @@ resolver = "2"
 crate-type = ["cdylib"]
 
 [dependencies]
-# zoon = { git = "https://github.com/MartinKavik/MoonZoon", rev = "2a14743" }
-zoon = { path = "../../../MoonZoon/crates/zoon/" }
+zoon = { git = "https://github.com/MoonZoon/MoonZoon", rev = "a1ed81c" }
 shared = { path = "../shared", features = ["frontend"] }
 voting_program = { path = "../../program", features = ["no-entrypoint"]  }
 borsh = "=0.9.1"

@@ -1,21 +1,23 @@
-use zoon::{*, println, eprintln};
+use zoon::{eprintln, println, *};
 
+use crate::{
+    app,
+    connection::{connection, wait_for_cor_id},
+    solana_helpers,
+};
+use borsh::BorshDeserialize;
+use shared::UpMsg;
 use solana_sdk::{
-    pubkey::Pubkey,
-    transaction::Transaction,
     message::Message,
-    signer::{Signer, keypair::Keypair},
+    pubkey::Pubkey,
+    signer::{keypair::Keypair, Signer},
+    transaction::Transaction,
 };
 use voting_program::{instruction as voting_instruction, state::VoterVotes};
-use shared::UpMsg;
-use crate::{connection::{connection, wait_for_cor_id}, app, solana_helpers};
-use borsh::BorshDeserialize;
 
 pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: Pubkey) {
-    let (add_voter_ix, voter_votes_pubkey) = voting_instruction::add_voter(
-        &voting_owner_keypair.pubkey(), 
-        &voter_pubkey
-    );
+    let (add_voter_ix, voter_votes_pubkey) =
+        voting_instruction::add_voter(&voting_owner_keypair.pubkey(), &voter_pubkey);
     println!("voter_votes_pubkey: {}", voter_votes_pubkey);
 
     super::set_status("Adding the voter...");
@@ -43,15 +45,8 @@ pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: 
                 return super::set_status(error);
             }
         };
-        let message = Message::new(
-            &[add_voter_ix], 
-            None
-        );
-        let transaction = Transaction::new(
-            &[&voting_owner_keypair], 
-            message, 
-            recent_blockhash
-        );
+        let message = Message::new(&[add_voter_ix], None);
+        let transaction = Transaction::new(&[&voting_owner_keypair], message, recent_blockhash);
 
         let up_msg = UpMsg::AddVoter {
             pubkey: voter_pubkey,
@@ -62,7 +57,7 @@ pub fn create_and_send_transaction(voting_owner_keypair: Keypair, voter_pubkey: 
             eprintln!("add_voter request failed: {}", error);
             super::set_status(error);
         }
-    
+
         println!("add_voter transaction sent.");
     });
 }

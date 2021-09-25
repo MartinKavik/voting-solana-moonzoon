@@ -1,9 +1,6 @@
-use zoon::{*,format};
+use solana_sdk::{pubkey::Pubkey, signer::keypair::read_keypair};
 use std::{borrow::Cow, str::FromStr};
-use solana_sdk::{
-    pubkey::Pubkey,
-    signer::keypair::read_keypair,
-};
+use zoon::{format, *};
 
 mod add_voter_transaction;
 mod view;
@@ -75,7 +72,7 @@ pub fn voter_added(voter_pubkey_or_error: Result<Pubkey, String>) {
             let pubkey_part = pubkey.to_string().chars().take(5).collect::<String>();
             set_status(format!("Voter '{}***' added.", pubkey_part));
             voter_pubkey().take();
-        },
+        }
         Err(error) => {
             set_status(error);
         }

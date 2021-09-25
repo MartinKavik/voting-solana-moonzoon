@@ -1,14 +1,18 @@
-use zoon::{*, println, eprintln};
+use zoon::{eprintln, println, *};
 
+use crate::{
+    app,
+    connection::{connection, wait_for_cor_id},
+    solana_helpers,
+};
+use borsh::BorshDeserialize;
+use shared::UpMsg;
 use solana_sdk::{
-    transaction::Transaction,
     message::Message,
-    signer::{Signer, keypair::Keypair},
+    signer::{keypair::Keypair, Signer},
+    transaction::Transaction,
 };
 use voting_program::{instruction as voting_instruction, state::VotingState};
-use shared::UpMsg;
-use crate::{connection::{connection, wait_for_cor_id}, app, solana_helpers};
-use borsh::BorshDeserialize;
 
 pub fn create_and_send_transaction(fee_payer_keypair: Keypair, party_name: String) {
     super::set_status("Adding the party...");
@@ -25,7 +29,7 @@ pub fn create_and_send_transaction(fee_payer_keypair: Keypair, party_name: Strin
             Err(error) => return super::set_status(error.to_owned()),
             Ok(account) => {
                 let voting_state_data = VotingState::try_from_slice(&account.data)
-                .expect("failed to deserialize VotingState account data");
+                    .expect("failed to deserialize VotingState account data");
 
                 println!("voting_state_account: {:#?}", account);
                 println!("voting_state_account data: {:#?}", voting_state_data);
@@ -37,7 +41,7 @@ pub fn create_and_send_transaction(fee_payer_keypair: Keypair, party_name: Strin
             &fee_payer_keypair.pubkey(),
             &party_name,
             party_count,
-            solana_helpers::voting_state_pubkey()
+            solana_helpers::voting_state_pubkey(),
         );
         println!("party_pubkey: {}", party_pubkey);
 
@@ -47,15 +51,8 @@ pub fn create_and_send_transaction(fee_payer_keypair: Keypair, party_name: Strin
                 return super::set_status(error);
             }
         };
-        let message = Message::new(
-            &[add_party_ix], 
-            None
-        );
-        let transaction = Transaction::new(
-            &[&fee_payer_keypair], 
-            message, 
-            recent_blockhash,
-        );
+        let message = Message::new(&[add_party_ix], None);
+        let transaction = Transaction::new(&[&fee_payer_keypair], message, recent_blockhash);
 
         let up_msg = UpMsg::AddParty {
             name: party_name,
@@ -67,7 +64,7 @@ pub fn create_and_send_transaction(fee_payer_keypair: Keypair, party_name: Strin
             eprintln!("add_party request failed: {}", error);
             super::set_status(error);
         }
-    
+
         println!("add_party transaction sent.");
     });
 }

@@ -1,7 +1,7 @@
-use zoon::*;
 use crate::theme::Theme;
-use std::{sync::Arc, cmp::Ordering};
 use solana_sdk::pubkey::Pubkey;
+use std::{cmp::Ordering, sync::Arc};
+use zoon::*;
 
 pub fn page() -> impl Element {
     Column::new()
@@ -63,8 +63,7 @@ fn deadline(timestamp: i64) -> impl Element {
 
 fn deadline_date_time(timestamp: i64) -> impl Element {
     let date_time = Local.timestamp(timestamp, 0);
-    El::new()
-        .child(date_time.to_rfc2822())
+    El::new().child(date_time.to_rfc2822())
 }
 
 fn deadline_countdown(timestamp: i64) -> impl Element {
@@ -76,10 +75,14 @@ fn deadline_countdown(timestamp: i64) -> impl Element {
     Row::new()
         .s(Spacing::new(4))
         .s(Align::new().center_x())
-        .s(Font::new()
-            .color_signal(countdown.signal().map(|countdown| {
-                if countdown < 0 { Theme::Red } else { Theme::Green }
-            }))
+        .s(
+            Font::new().color_signal(countdown.signal().map(|countdown| {
+                if countdown < 0 {
+                    Theme::Red
+                } else {
+                    Theme::Green
+                }
+            })),
         )
         .after_remove(move |_| drop(countdown_updater))
         .item(Text::with_signal(countdown.signal()))
@@ -89,8 +92,7 @@ fn deadline_countdown(timestamp: i64) -> impl Element {
 // ------ status ------
 
 fn status() -> impl Element {
-    El::new()
-        .child_signal(super::status().signal_cloned())
+    El::new().child_signal(super::status().signal_cloned())
 }
 
 // ------ parties ------
@@ -119,12 +121,19 @@ fn vote_button(party: Arc<super::Party>, positive: bool) -> impl Element {
             || Theme::White,
             move || if positive { Theme::Green } else { Theme::Red },
         )))
-        .s(Font::new().color(Theme::Black).weight(NamedWeight::SemiBold).size(25))
+        .s(Font::new()
+            .color(Theme::Black)
+            .weight(NamedWeight::SemiBold)
+            .size(25))
         .s(Width::new(40))
         .s(Height::new(40))
         .on_hovered_change(move |is_hovered| hovered.set_neq(is_hovered))
         .on_click(move || super::vote(party.pubkey, positive))
-        .label(El::new().s(Align::center()).child(if positive { "+" } else { "-" }))
+        .label(
+            El::new()
+                .s(Align::center())
+                .child(if positive { "+" } else { "-" }),
+        )
 }
 
 fn party_data(party: Arc<super::Party>) -> impl Element {
@@ -143,20 +152,18 @@ fn party_name_and_votes(party: Arc<super::Party>) -> impl Element {
 }
 
 fn party_name(name: &str) -> impl Element {
-    El::new()
-        .s(Font::new().size(20))
-        .child(name)
+    El::new().s(Font::new().size(20)).child(name)
 }
 
 fn party_votes(votes: &Mutable<i64>) -> impl Element {
     El::new()
-        .s(Font::new().size(20).color_signal(votes.signal().map(|votes| {
-            match votes.cmp(&0) {
+        .s(Font::new()
+            .size(20)
+            .color_signal(votes.signal().map(|votes| match votes.cmp(&0) {
                 Ordering::Less => Theme::Red,
                 Ordering::Equal => Theme::White,
                 Ordering::Greater => Theme::Green,
-            }
-        })))
+            })))
         .s(Align::new().right())
         .child(Text::with_signal(votes.signal()))
 }

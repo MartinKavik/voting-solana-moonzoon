@@ -1,5 +1,5 @@
-use zoon::*;
 use std::borrow::Cow;
+use zoon::*;
 
 #[derive(Clone, Copy)]
 pub enum Theme {

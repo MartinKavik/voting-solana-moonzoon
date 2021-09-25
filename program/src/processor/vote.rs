@@ -1,15 +1,18 @@
+use crate::{
+    error::VotingError,
+    state::{Party, VoterVoted, VoterVotes, VotingState},
+};
+use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint::ProgramResult,
-    program_error::ProgramError,
     msg,
-    pubkey::Pubkey,
-    sysvar::{rent::Rent, Sysvar, clock::Clock},
     program::invoke_signed,
+    program_error::ProgramError,
+    pubkey::Pubkey,
     system_instruction,
+    sysvar::{clock::Clock, rent::Rent, Sysvar},
 };
-use crate::{error::VotingError, state::{VoterVotes, VotingState, Party, VoterVoted}};
-use borsh::{BorshDeserialize, BorshSerialize};
 
 pub fn process(
     accounts: &[AccountInfo],
@@ -40,13 +43,21 @@ pub fn process(
 
     let voter_voted_account = next_account_info(account_info_iter)?;
 
-    if !voter_voted_account.try_borrow_data()?.iter().all(|byte| *byte == 0) {
+    if !voter_voted_account
+        .try_borrow_data()?
+        .iter()
+        .all(|byte| *byte == 0)
+    {
         Err(VotingError::AlreadyVoted)?;
     }
 
     let voter_votes_account = next_account_info(account_info_iter)?;
 
-    if voter_votes_account.try_borrow_data()?.iter().all(|byte| *byte == 0) {
+    if voter_votes_account
+        .try_borrow_data()?
+        .iter()
+        .all(|byte| *byte == 0)
+    {
         Err(VotingError::NotEligibleForVoting)?;
     }
 
@@ -68,7 +79,11 @@ pub fn process(
 
     let party_account = next_account_info(account_info_iter)?;
 
-    if party_account.try_borrow_data()?.iter().all(|byte| *byte == 0) {
+    if party_account
+        .try_borrow_data()?
+        .iter()
+        .all(|byte| *byte == 0)
+    {
         Err(ProgramError::UninitializedAccount)?;
     }
 
@@ -98,26 +113,22 @@ pub fn process(
 
     let voter_voted_size = VoterVoted::serialized_size();
     let create_voter_voted_account_ix = system_instruction::create_account(
-        voter_account.key, 
-        voter_voted_account.key, 
-        Rent::get()?.minimum_balance(voter_voted_size), 
-        voter_voted_size as u64, 
+        voter_account.key,
+        voter_voted_account.key,
+        Rent::get()?.minimum_balance(voter_voted_size),
+        voter_voted_size as u64,
         program_id,
     );
 
     let signers_seeds = &[
-        b"voter_voted".as_ref(), 
-        &voter_account.key.as_ref(), 
+        b"voter_voted".as_ref(),
+        &voter_account.key.as_ref(),
         &party_account.key.as_ref(),
         &voting_state_account.key.as_ref(),
         &[voter_votes_bump_seed],
     ];
 
-    invoke_signed(
-        &create_voter_voted_account_ix, 
-        accounts, 
-        &[signers_seeds],
-    )?;
+    invoke_signed(&create_voter_voted_account_ix, accounts, &[signers_seeds])?;
     msg!("VoterVoted account created.");
 
     let voter_voted = VoterVoted {
@@ -128,6 +139,6 @@ pub fn process(
     voter_voted.serialize(&mut *voter_voted_account.try_borrow_mut_data()?)?;
 
     msg!("Voted.");
-    
+
     Ok(())
 }

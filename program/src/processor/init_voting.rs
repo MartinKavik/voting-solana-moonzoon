@@ -1,18 +1,15 @@
+use crate::state::VotingState;
+use borsh::BorshSerialize;
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint::ProgramResult,
-    program_error::ProgramError,
     msg,
+    program_error::ProgramError,
     pubkey::Pubkey,
-    sysvar::{Sysvar, clock::Clock},
+    sysvar::{clock::Clock, Sysvar},
 };
-use borsh::BorshSerialize;
-use crate::state::VotingState;
 
-pub fn process(
-    accounts: &[AccountInfo],
-    _program_id: &Pubkey,
-) -> ProgramResult {
+pub fn process(accounts: &[AccountInfo], _program_id: &Pubkey) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
     let voting_owner_account = next_account_info(account_info_iter)?;
 
@@ -23,7 +20,11 @@ pub fn process(
     let voting_state_account = next_account_info(account_info_iter)?;
 
     // @TODO_QUESTION A better way? Use something like https://crates.io/crates/binary-layout?
-    if !voting_state_account.try_borrow_data()?.iter().all(|byte| *byte == 0) {
+    if !voting_state_account
+        .try_borrow_data()?
+        .iter()
+        .all(|byte| *byte == 0)
+    {
         Err(ProgramError::AccountAlreadyInitialized)?
     }
 

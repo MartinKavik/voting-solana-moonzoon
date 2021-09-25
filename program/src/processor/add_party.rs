@@ -1,15 +1,18 @@
+use crate::{
+    error::VotingError,
+    state::{Party, VotingState},
+};
+use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint::ProgramResult,
-    program_error::ProgramError,
     msg,
-    pubkey::Pubkey,
-    sysvar::{Sysvar, rent::Rent, clock::Clock},
-    system_instruction,
     program::invoke_signed,
+    program_error::ProgramError,
+    pubkey::Pubkey,
+    system_instruction,
+    sysvar::{clock::Clock, rent::Rent, Sysvar},
 };
-use crate::{state::{VotingState, Party}, error::VotingError};
-use borsh::{BorshSerialize, BorshDeserialize};
 
 pub fn process(
     accounts: &[AccountInfo],
@@ -27,7 +30,11 @@ pub fn process(
 
     let party_account = next_account_info(account_info_iter)?;
 
-    if !party_account.try_borrow_data()?.iter().all(|byte| *byte == 0) {
+    if !party_account
+        .try_borrow_data()?
+        .iter()
+        .all(|byte| *byte == 0)
+    {
         Err(ProgramError::AccountAlreadyInitialized)?;
     }
 
@@ -39,7 +46,7 @@ pub fn process(
     if voting_state.deadline < Clock::get()?.unix_timestamp {
         Err(VotingError::VoteIsOver)?;
     }
-    
+
     let new_party_index_bytes = voting_state.party_count.to_le_bytes();
 
     voting_state.party_count += 1;
@@ -56,28 +63,23 @@ pub fn process(
 
     let party_size = new_party_serialized.len();
     let create_party_account_ix = system_instruction::create_account(
-        fee_payer_account.key, 
-        party_account.key, 
-        Rent::get()?.minimum_balance(party_size), 
-        party_size as u64, 
+        fee_payer_account.key,
+        party_account.key,
+        Rent::get()?.minimum_balance(party_size),
+        party_size as u64,
         program_id,
     );
 
     let signers_seeds = &[
-        b"party".as_ref(), 
-        &new_party_index_bytes.as_ref(), 
+        b"party".as_ref(),
+        &new_party_index_bytes.as_ref(),
         &voting_state_account.key.as_ref(),
         &[party_bump_seed],
     ];
 
-    invoke_signed(
-        &create_party_account_ix, 
-        accounts, 
-        &[signers_seeds],
-    )?;
+    invoke_signed(&create_party_account_ix, accounts, &[signers_seeds])?;
     msg!("Party account created.");
 
-    
     party_account
         .try_borrow_mut_data()?
         .copy_from_slice(&new_party_serialized);

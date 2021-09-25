@@ -1,5 +1,5 @@
-use thiserror::Error;
 use solana_program::program_error::ProgramError;
+use thiserror::Error;
 
 #[derive(Error, Debug, Copy, Clone)]
 pub enum VotingError {

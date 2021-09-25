@@ -1,5 +1,5 @@
-use zoon::*;
 use crate::theme::Theme;
+use zoon::*;
 
 pub fn page() -> impl Element {
     Column::new()
@@ -18,7 +18,7 @@ pub fn page() -> impl Element {
                 .item(title())
                 .item(add_party_fields())
                 .item(status())
-                .item(add_voter_button())
+                .item(add_voter_button()),
         )
 }
 
@@ -67,9 +67,7 @@ fn party_name_field() -> impl Element {
 }
 
 fn party_name_label() -> impl Element {
-    Label::new()
-        .for_input("party_name")
-        .label("Party name")
+    Label::new().for_input("party_name").label("Party name")
 }
 
 fn party_name_input() -> impl Element {
@@ -83,18 +81,18 @@ fn party_name_input() -> impl Element {
 }
 
 fn status() -> impl Element {
-    El::new()
-        .child_signal(super::status().signal_cloned())
+    El::new().child_signal(super::status().signal_cloned())
 }
 
 fn add_voter_button() -> impl Element {
     let (hovered, hovered_signal) = Mutable::new_and_signal(false);
     Button::new()
-        .s(Background::new().color_signal(hovered_signal.map_bool(
-            || Theme::White,
-            || Theme::Green,
-        )))
-        .s(Font::new().color(Theme::Black).weight(NamedWeight::Bold).size(16))
+        .s(Background::new()
+            .color_signal(hovered_signal.map_bool(|| Theme::White, || Theme::Green)))
+        .s(Font::new()
+            .color(Theme::Black)
+            .weight(NamedWeight::Bold)
+            .size(16))
         .s(Padding::new().x(15).y(10))
         .s(RoundedCorners::all_max())
         .on_hovered_change(move |is_hovered| hovered.set_neq(is_hovered))
