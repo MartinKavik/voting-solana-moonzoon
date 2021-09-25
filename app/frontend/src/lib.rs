@@ -1,3 +1,12 @@
+#![warn(clippy::all, clippy::pedantic, clippy::nursery)]
+#![allow(
+    clippy::semicolon_if_nothing_returned,
+    clippy::missing_errors_doc,
+    clippy::similar_names,
+    clippy::wildcard_imports,
+    clippy::future_not_send
+)]
+
 use zoon::*;
 
 mod add_party_page;

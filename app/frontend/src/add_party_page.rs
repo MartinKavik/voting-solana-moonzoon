@@ -41,12 +41,12 @@ fn add_party() {
     let fee_payer_keypair = fee_payer_private_key().lock_ref();
     let party_name = party_name().lock_ref();
 
-    let fee_payer_keypair = match read_keypair(&mut fee_payer_keypair.as_bytes()) {
-        Ok(keypair) => keypair,
-        _ => {
-            status().set(Some(Cow::from("Sorry, invalid private key.")));
-            return;
-        }
+    let fee_payer_keypair = read_keypair(&mut fee_payer_keypair.as_bytes());
+    let fee_payer_keypair = if let Ok(keypair) = fee_payer_keypair {
+        keypair
+    } else {
+        status().set(Some(Cow::from("Sorry, invalid private key.")));
+        return;
     };
     if party_name.is_empty() {
         status().set(Some(Cow::from("Sorry, invalid name.")));

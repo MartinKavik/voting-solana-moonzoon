@@ -61,8 +61,8 @@ pub fn process(
 
     let signers_seeds = &[
         b"voter_votes".as_ref(),
-        &voter_pubkey.as_ref(),
-        &voting_state_account.key.as_ref(),
+        voter_pubkey.as_ref(),
+        voting_state_account.key.as_ref(),
         &[voter_votes_bump_seed],
     ];
 

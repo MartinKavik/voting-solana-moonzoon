@@ -41,19 +41,18 @@ fn add_voter() {
     let voting_owner_keypair = voting_owner_private_key().lock_ref();
     let voter_pubkey = voter_pubkey().lock_ref();
 
-    let voting_owner_keypair = match read_keypair(&mut voting_owner_keypair.as_bytes()) {
-        Ok(keypair) => keypair,
-        _ => {
+    let voting_owner_keypair =
+        if let Ok(keypair) = read_keypair(&mut voting_owner_keypair.as_bytes()) {
+            keypair
+        } else {
             set_status("Sorry, invalid private key.");
             return;
-        }
-    };
-    let voter_pubkey = match Pubkey::from_str(&voter_pubkey) {
-        Ok(pubkey) => pubkey,
-        _ => {
-            set_status("Sorry, invalid PubKey.");
-            return;
-        }
+        };
+    let voter_pubkey = if let Ok(pubkey) = Pubkey::from_str(&voter_pubkey) {
+        pubkey
+    } else {
+        set_status("Sorry, invalid PubKey.");
+        return;
     };
     add_voter_transaction::create_and_send_transaction(voting_owner_keypair, voter_pubkey);
 }

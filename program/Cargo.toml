@@ -6,6 +6,7 @@ authors = ["Martin Kavík <martin@kavik.cz>"]
 description = "Voting example (Solana + MoonZoon)"
 categories = ["MoonZoon", "Solana", "example"]
 readme = "../README.md"
+keywords = ["moonzoon", "solana", "blockchain", "fullstack", "example"]
 edition = "2018"
 
 [dependencies]

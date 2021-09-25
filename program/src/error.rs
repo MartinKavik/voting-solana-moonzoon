@@ -36,6 +36,6 @@ pub enum VotingError {
 
 impl From<VotingError> for ProgramError {
     fn from(e: VotingError) -> Self {
-        ProgramError::Custom(e as u32)
+        Self::Custom(e as u32)
     }
 }

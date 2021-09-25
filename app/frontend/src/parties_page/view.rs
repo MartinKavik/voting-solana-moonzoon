@@ -109,7 +109,7 @@ fn party(party: Arc<super::Party>) -> impl Element {
         .s(Width::fill())
         .s(Spacing::new(15))
         .item(vote_button(party.clone(), false))
-        .item(party_data(party.clone()))
+        .item(party_data(&party))
         .item(vote_button(party, true))
 }
 
@@ -136,15 +136,15 @@ fn vote_button(party: Arc<super::Party>, positive: bool) -> impl Element {
         )
 }
 
-fn party_data(party: Arc<super::Party>) -> impl Element {
+fn party_data(party: &super::Party) -> impl Element {
     Column::new()
         .s(Width::fill())
         .s(Spacing::new(8))
-        .item(party_name_and_votes(party.clone()))
+        .item(party_name_and_votes(party))
         .item(party_pubkey(party.pubkey))
 }
 
-fn party_name_and_votes(party: Arc<super::Party>) -> impl Element {
+fn party_name_and_votes(party: &super::Party) -> impl Element {
     Row::new()
         .s(Spacing::new(8))
         .item(party_name(&party.name))

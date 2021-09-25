@@ -16,7 +16,7 @@ pub struct Party {
 
 impl Party {
     pub fn serialized_size() -> usize {
-        Party::default()
+        Self::default()
             .try_to_vec()
             .expect("failed to serialize default Party")
             .len()

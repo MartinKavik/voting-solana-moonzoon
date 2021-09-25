@@ -102,12 +102,12 @@ fn vote(party_pubkey: Pubkey, positive: bool) {
     status().take();
     let voter_keypair = voter_private_key().lock_ref();
 
-    let voter_keypair = match read_keypair(&mut voter_keypair.as_bytes()) {
-        Ok(keypair) => keypair,
-        _ => {
-            set_status("Sorry, invalid private key.");
-            return;
-        }
+    let voter_keypair = read_keypair(&mut voter_keypair.as_bytes());
+    let voter_keypair = if let Ok(keypair) = voter_keypair {
+        keypair
+    } else {
+        set_status("Sorry, invalid private key.");
+        return;
     };
     vote_transaction::create_and_send_transaction(voter_keypair, party_pubkey, positive);
 }

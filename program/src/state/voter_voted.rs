@@ -10,7 +10,7 @@ pub struct VoterVoted {
 
 impl VoterVoted {
     pub fn serialized_size() -> usize {
-        VoterVoted::default()
+        Self::default()
             .try_to_vec()
             .expect("failed to serialize default VoterVoted")
             .len()

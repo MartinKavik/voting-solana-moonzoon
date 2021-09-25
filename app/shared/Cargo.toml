@@ -5,6 +5,7 @@ repository = "https://github.com/MartinKavik/voting-solana-moonzoon"
 authors = ["Martin Kavík <martin@kavik.cz>"]
 description = "Voting example (Solana + MoonZoon)"
 categories = ["MoonZoon", "Solana", "example"]
+keywords = ["moonzoon", "solana", "blockchain", "fullstack", "example"]
 readme = "../README.md"
 edition = "2018"
 

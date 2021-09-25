@@ -26,7 +26,7 @@ pub fn create_and_send_transaction(fee_payer_keypair: Keypair, party_name: Strin
             Ok(cor_id) => wait_for_cor_id(cor_id).await,
         };
         let party_count = match app::account().lock_ref().as_ref().unwrap_throw() {
-            Err(error) => return super::set_status(error.to_owned()),
+            Err(error) => return super::set_status(error.clone()),
             Ok(account) => {
                 let voting_state_data = VotingState::try_from_slice(&account.data)
                     .expect("failed to deserialize VotingState account data");

@@ -1,3 +1,5 @@
+#![allow(clippy::use_self)]
+
 use crate::error::VotingError;
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
@@ -68,7 +70,7 @@ pub enum VotingInstruction {
 impl VotingInstruction {
     /// Unpacks a byte buffer into a [VotingInstruction](enum.VotingInstruction.html).
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
-        Self::try_from_slice(&input).map_err(|error| {
+        Self::try_from_slice(input).map_err(|error| {
             msg!(&error.to_string());
             VotingError::InvalidInstruction.into()
         })
@@ -93,8 +95,8 @@ pub fn add_voter(voting_owner_pubkey: &Pubkey, voter_pubkey: &Pubkey) -> (Instru
 
     let seeds = &[
         b"voter_votes".as_ref(),
-        &voter_pubkey.as_ref(),
-        &voting_state_pubkey.as_ref(),
+        voter_pubkey.as_ref(),
+        voting_state_pubkey.as_ref(),
     ];
     let (voter_votes_pubkey, voter_votes_bump_seed) =
         Pubkey::find_program_address(seeds, &crate::id());
@@ -158,16 +160,16 @@ pub fn vote(
 ) -> (Instruction, Pubkey, Pubkey) {
     let seeds = &[
         b"voter_votes".as_ref(),
-        &voter_pubkey.as_ref(),
-        &voting_state_pubkey.as_ref(),
+        voter_pubkey.as_ref(),
+        voting_state_pubkey.as_ref(),
     ];
     let voter_votes_pubkey = Pubkey::find_program_address(seeds, &crate::id()).0;
 
     let seeds = &[
         b"voter_voted".as_ref(),
-        &voter_pubkey.as_ref(),
-        &party_pubkey.as_ref(),
-        &voting_state_pubkey.as_ref(),
+        voter_pubkey.as_ref(),
+        party_pubkey.as_ref(),
+        voting_state_pubkey.as_ref(),
     ];
     let (voter_voted_pubkey, voter_votes_bump_seed) =
         Pubkey::find_program_address(seeds, &crate::id());
