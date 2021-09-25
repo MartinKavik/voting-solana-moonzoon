@@ -6,8 +6,10 @@ pub struct Party {
     pub is_initialized: bool,
     pub positive_votes: u32,
     pub negative_votes: u32,
-    // @TODO How to store strings to avoid problems with fixed data length? 
-    // Something like `arrayvec::ArrayString`?
+    // @TODO_QUESTION How to store strings to avoid problems with fixed data length? 
+    // Something like `arrayvec::ArrayString` with a max length 128 bytes?
+    // @TODO_QUESTION How to store long texts with very different lengths (imagine a blog article)?
+    // Chunk into accounts?
     pub name: String,
     pub voting_state_pubkey: Pubkey,
 }

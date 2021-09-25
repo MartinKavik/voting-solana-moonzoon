@@ -119,7 +119,7 @@ pub fn add_voter(
     (ix, voter_votes_pubkey)
 }
 
-// @TODO_QUESTION: How to represent a `Vec<Party>` on chain?  
+// @TODO_QUESTION: How to correctly represent a `Vec<Party>` on chain?  
 // @TODO_QUESTION: Can I create a Party account without the need 
 // to define the new index outside of transaction to prevent conflicts? 
 pub fn add_party(

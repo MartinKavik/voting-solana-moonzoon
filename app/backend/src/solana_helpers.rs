@@ -3,6 +3,7 @@ use solana_sdk::{
     signer::{Signer, keypair::{Keypair, read_keypair}},
     hash::Hash,
     pubkey::Pubkey,
+    commitment_config::CommitmentConfig,
 };
 use solana_client::rpc_client::RpcClient;
 use voting_program::{self, state::VotingState};
@@ -19,7 +20,9 @@ pub fn voting_owner_keypair() -> &'static Keypair {
 pub fn client() -> &'static RpcClient {
     static INSTANCE: OnceCell<RpcClient> = OnceCell::new();
     INSTANCE.get_or_init(|| {
-        RpcClient::new("http://localhost:8899".to_owned())
+        // @TODO_QUESTION What are the best practices for setting the `commitment`? 
+        // @TODO_QUESTION Should I write a retry somewhere?
+        RpcClient::new_with_commitment("http://localhost:8899".to_owned(), CommitmentConfig::confirmed())
     })
 }
 

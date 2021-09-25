@@ -32,8 +32,7 @@ async fn up_msg_handler(req: UpMsgRequest<UpMsg>, deadline: i64) {
             println!("Waiting for add_voter transaction...");
 
             let transaction_result = task::spawn_blocking(move || {
-                // @TODO_QUESTION Why does it take so long? Would a different `commitment` or something else help?
-                // @TODO_QUESTION What is `RpcClient::send_and_confirm_transaction_with_spinner`?
+                // @TODO_QUESTION How to use `RpcClient::send_and_confirm_transaction_with_spinner`?
                 solana_helpers::client().send_and_confirm_transaction(&transaction)
             }).await.expect("add_voter transaction task failed");
 

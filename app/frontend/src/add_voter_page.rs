@@ -19,15 +19,15 @@ fn status() -> &'static Mutable<Option<Cow<'static, str>>> {
 
 #[static_ref]
 fn voting_owner_private_key() -> &'static Mutable<String> {
-    // @TODO remove hardcoded value
     // Mutable::new(String::new())
+    // a hardcoded value for easier manual testing
     Mutable::new("[174,64,61,34,218,120,154,130,8,130,196,244,149,216,51,1,142,0,23,172,162,125,63,23,184,48,41,64,54,74,176,60,193,36,90,212,230,161,186,128,229,189,103,204,231,108,156,66,63,179,123,75,186,241,81,146,103,28,125,167,34,192,55,136]".to_owned())
 }
 
 #[static_ref]
 fn voter_pubkey() -> &'static Mutable<String> {
-    // @TODO remove hardcoded value
     // Mutable::new(String::new())
+    // a hardcoded value for easier manual testing
     Mutable::new("3SDJZWXFwbkSCy2tVrEpffG7Vq9dxTxguAM3vvjewr1L".to_owned())
 }
 
