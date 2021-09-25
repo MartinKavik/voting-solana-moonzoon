@@ -15,6 +15,7 @@ pub fn process(
     accounts: &[AccountInfo],
     program_id: &Pubkey,
     positive: bool,
+    voter_votes_bump_seed: u8,
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
 
@@ -84,17 +85,6 @@ pub fn process(
         Err(VotingError::IllegalVotingState)?;
     }
 
-    let seeds = &[
-        b"voter_voted".as_ref(), 
-        &voter_account.key.as_ref(), 
-        &party_account.key.as_ref(),
-        &voting_state_account.key.as_ref(),
-    ];
-    let (expected_voter_votes_pubkey, bump_seed) = Pubkey::find_program_address(seeds, program_id);
-    if expected_voter_votes_pubkey != *voter_voted_account.key {
-        Err(ProgramError::InvalidSeeds)?;
-    }
-
     if positive {
         voter_votes.positive_votes -= 1;
         party.positive_votes += 1;
@@ -115,18 +105,18 @@ pub fn process(
         program_id,
     );
 
-    let signer_seeds = &[
+    let signers_seeds = &[
         b"voter_voted".as_ref(), 
         &voter_account.key.as_ref(), 
         &party_account.key.as_ref(),
         &voting_state_account.key.as_ref(),
-        &[bump_seed],
+        &[voter_votes_bump_seed],
     ];
 
     invoke_signed(
         &create_voter_voted_account_ix, 
         accounts, 
-        &[signer_seeds],
+        &[signers_seeds],
     )?;
     msg!("VoterVoted account created.");
 

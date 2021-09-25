@@ -15,6 +15,7 @@ pub fn process(
     accounts: &[AccountInfo],
     program_id: &Pubkey,
     voter_pubkey: &Pubkey,
+    voter_votes_bump_seed: u8,
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
     let voting_owner_account = next_account_info(account_info_iter)?;
@@ -41,12 +42,6 @@ pub fn process(
     if !voter_votes_account.try_borrow_data()?.iter().all(|byte| *byte == 0) {
         Err(ProgramError::AccountAlreadyInitialized)?
     }
-
-    let seeds = &[b"voter_votes".as_ref(), &voter_pubkey.as_ref(), &voting_state_account.key.as_ref()];
-    let (expected_voter_votes_pubkey, bump_seed) = Pubkey::find_program_address(seeds, program_id);
-    if expected_voter_votes_pubkey != *voter_votes_account.key {
-        Err(ProgramError::InvalidSeeds)?
-    }
     
     let voter_votes_size = VoterVotes::serialized_size();
     let create_voter_votes_account_ix = system_instruction::create_account(
@@ -57,17 +52,17 @@ pub fn process(
         program_id,
     );
 
-    let signer_seeds = &[
+    let signers_seeds = &[
         b"voter_votes".as_ref(), 
         &voter_pubkey.as_ref(), 
         &voting_state_account.key.as_ref(),
-        &[bump_seed],
+        &[voter_votes_bump_seed],
     ];
 
     invoke_signed(
         &create_voter_votes_account_ix, 
         accounts, 
-        &[signer_seeds],
+        &[signers_seeds],
     )?;
     msg!("VoterVotes account created.");
 

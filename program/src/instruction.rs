@@ -20,6 +20,9 @@ pub enum VotingInstruction {
     /// 1. `[writable]` The voting state account.
     InitVoting,
 
+    // @TODO_QUESTION: Is ok to mirror the account order from the processor implementation?
+    // (for instance mix writable and read-only accounts) 
+
     /// Makes the voter eligible for voting by creating a VoterVotes account.
     ///
     ///
@@ -31,6 +34,7 @@ pub enum VotingInstruction {
     /// 3. `[]` The system program.
     AddVoter {
         voter_pubkey: Pubkey,
+        voter_votes_bump_seed: u8,
     },
 
     /// Creates a new Party account with the requested name 
@@ -45,6 +49,7 @@ pub enum VotingInstruction {
     /// 3. `[]` The system program.
     AddParty {
         name: String,
+        party_bump_seed: u8,
     },
 
     /// Votes the provided party and creates a VoterVoted account.  
@@ -61,6 +66,7 @@ pub enum VotingInstruction {
     Vote {
         /// The party will receive one negative or positive vote.
         positive: bool,
+        voter_votes_bump_seed: u8,
     },
 }
 
@@ -103,7 +109,7 @@ pub fn add_voter(
     let voting_state_pubkey = voting_state_pubkey(voting_owner_pubkey);
 
     let seeds = &[b"voter_votes".as_ref(), &voter_pubkey.as_ref(), &voting_state_pubkey.as_ref()];
-    let voter_votes_pubkey = Pubkey::find_program_address(seeds, &crate::id()).0;
+    let (voter_votes_pubkey, voter_votes_bump_seed) = Pubkey::find_program_address(seeds, &crate::id());
 
     let account_metas = vec![
         AccountMeta::new(*voting_owner_pubkey, true),
@@ -113,7 +119,7 @@ pub fn add_voter(
     ];
     let ix = Instruction::new_with_borsh(
         crate::id(),
-        &VotingInstruction::AddVoter { voter_pubkey: *voter_pubkey },
+        &VotingInstruction::AddVoter { voter_pubkey: *voter_pubkey, voter_votes_bump_seed },
         account_metas,
     );
     (ix, voter_votes_pubkey)
@@ -130,7 +136,7 @@ pub fn add_party(
 ) -> (Instruction, Pubkey) {
     let new_party_index_bytes = party_count.to_le_bytes();
     let seeds = &[b"party", new_party_index_bytes.as_ref(), voting_state_pubkey.as_ref()];
-    let party_pubkey = Pubkey::find_program_address(seeds, &crate::id()).0;
+    let (party_pubkey, party_bump_seed) = Pubkey::find_program_address(seeds, &crate::id());
 
     let account_metas = vec![
         AccountMeta::new(*fee_payer, true),
@@ -140,7 +146,7 @@ pub fn add_party(
     ];
     let ix = Instruction::new_with_borsh(
         crate::id(),
-        &VotingInstruction::AddParty { name: party_name.to_owned() },
+        &VotingInstruction::AddParty { name: party_name.to_owned(), party_bump_seed },
         account_metas,
     );
     (ix, party_pubkey)
@@ -161,7 +167,7 @@ pub fn vote(
         &party_pubkey.as_ref(),
         &voting_state_pubkey.as_ref(),
     ];
-    let voter_voted_pubkey = Pubkey::find_program_address(seeds, &crate::id()).0;
+    let (voter_voted_pubkey, voter_votes_bump_seed) = Pubkey::find_program_address(seeds, &crate::id());
 
     let account_metas = vec![
         AccountMeta::new(*voter_pubkey, true),
@@ -173,7 +179,7 @@ pub fn vote(
     ];
     let ix = Instruction::new_with_borsh(
         crate::id(),
-        &VotingInstruction::Vote { positive },
+        &VotingInstruction::Vote { positive, voter_votes_bump_seed },
         account_metas,
     );
     (ix, voter_votes_pubkey, voter_voted_pubkey)

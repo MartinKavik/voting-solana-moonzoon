@@ -15,6 +15,7 @@ pub fn process(
     accounts: &[AccountInfo],
     program_id: &Pubkey,
     party_name: String,
+    party_bump_seed: u8,
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
 
@@ -41,12 +42,6 @@ pub fn process(
     
     let new_party_index_bytes = voting_state.party_count.to_le_bytes();
 
-    let seeds = &[b"party", new_party_index_bytes.as_ref(), voting_state_account.key.as_ref()];
-    let (expected_party_pubkey, bump_seed) = Pubkey::find_program_address(seeds, program_id);
-    if expected_party_pubkey != *party_account.key {
-        Err(ProgramError::InvalidSeeds)?;
-    }
-
     voting_state.party_count += 1;
     voting_state.serialize(&mut *voting_state_account_data)?;
 
@@ -68,17 +63,17 @@ pub fn process(
         program_id,
     );
 
-    let signer_seeds = &[
+    let signers_seeds = &[
         b"party".as_ref(), 
         &new_party_index_bytes.as_ref(), 
         &voting_state_account.key.as_ref(),
-        &[bump_seed],
+        &[party_bump_seed],
     ];
 
     invoke_signed(
         &create_party_account_ix, 
         accounts, 
-        &[signer_seeds],
+        &[signers_seeds],
     )?;
     msg!("Party account created.");
 
