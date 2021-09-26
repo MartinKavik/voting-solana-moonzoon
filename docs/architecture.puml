@@ -1,0 +1,85 @@
+@startuml Architecture
+
+skinparam defaultFontSize 20
+skinparam package {
+    BackgroundColor<<Project>> gray
+    BackgroundColor<<MoonZoon>> #66ccff
+    BackgroundColor<<Moon>> #ccff66
+    BackgroundColor<<Page>> #ffcc66
+    BackgroundColor<<Smart Contract>> #66ffff
+}
+skinparam node {
+    BackgroundColor<<Zoon>> #66ffcc 
+}
+skinparam object {
+    BackgroundColor<<Page>> #ffffff
+}
+skinparam database {
+    BackgroundColor<<Solana>> #ffcc66
+}
+
+package Voting <<Project>> {
+    package App <<MoonZoon>> {
+        node Frontend <<Zoon>> {
+            object "**Parties**" as Parties <<Page>> {
+                /
+            }
+            object "**Add Voter**" as AddVoter <<Page>> {
+                /add_voter
+            }
+            object "**Add Party**" as AddParty <<Page>> {
+                /add_party
+            }
+        }
+        cloud { 
+            package Backend <<Moon>> {
+            }
+        }
+        Frontend --> Backend : Fetch
+    Frontend <-- Backend : Server-Sent Events
+    }
+    database Blockchain <<Solana>> {
+        object "**Voting Owner**" as VotingOwner <<Account>> {
+        }
+        object "**Voter**" as Voter <<Account>> {
+        }
+        package Program <<Smart Contract>> {
+            map "**Party**" as Party <<Account>> {
+                is_initialized => bool
+                positive_votes => u32
+                negative_votes => u32
+                name => String
+                voting_state_pubkey => Pubkey
+            }
+            map "**Voter Voted**" as VoterVoted <<Account>> {
+                is_initialized => bool
+                voter_pubkey => Pubkey
+                voting_state_pubkey => Pubkey
+            }
+            map "**Voter Votes**" as VoterVotes <<Account>> {
+                is_initialized => bool
+                positive_votes => u8
+                negative_votes => u8
+                voter_pubkey => Pubkey
+                voting_state_pubkey => Pubkey
+            }
+            map "**Voting State**" as VotingState <<Account>> {
+                is_initialized => bool
+                deadline => i64
+                party_count => u32
+                voting_owner => Pubkey
+            }
+        }
+        VotingOwner "1" -- "1" VotingState
+        VotingState "1" -- "0..*" Party
+        VotingState "1" -- "0..*" VoterVotes
+        VotingState "1" -- "0..*" VoterVoted
+        Party "1" -- "0..*" VoterVoted
+        Voter "1" -- "0..*" VoterVoted
+        Voter "1" -- "1" VoterVotes
+    }
+    Backend <--> Blockchain : JSON RPC
+    Backend ..> "controls" VotingOwner
+}
+
+@enduml
