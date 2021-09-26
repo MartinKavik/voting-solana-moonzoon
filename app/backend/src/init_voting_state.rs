@@ -13,8 +13,8 @@ pub async fn init_voting_state() -> VotingState {
     }
 
     let voting_state_size = VotingState::serialized_size();
-    // @TODO_QUESTION is `system_instruction::create_account_with_seed` ok
-    // or is it better to create an account in a program with `Pubkey::find_program_address` + invoke_signed?
+    // @TODO_QUESTION Off-chain `system_instruction::create_account_with_seed` 
+    // vs `Pubkey::find_program_address` + `system_instruction::create_account` on chain.
     let create_voting_state_account_ix = system_instruction::create_account_with_seed(
         &voting_owner_pubkey,
         solana_helpers::voting_state_pubkey(),

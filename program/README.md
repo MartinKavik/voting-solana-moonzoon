@@ -18,7 +18,7 @@
 
 1. Go to the `/program` directory.
 
-1. Start Solana:
+1. Start Solana localnet:
     ```bash
     solana-test-validator -C ./config.yml
     ```
