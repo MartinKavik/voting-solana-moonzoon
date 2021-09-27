@@ -12,7 +12,7 @@ It's my first project with Solana / blockchain so I have several questions for m
     )
     ```
 
-4. Is this example the only Solana example with a Wasm frontend? I wasn't able to make it work with the stable Solana version. The `Cargo.toml` looks like this now:
+4. Is this repo the only Solana example with a Wasm frontend? I wasn't able to make it work with the stable Solana version. The `Cargo.toml` looks like this now:
     ```toml
     # @TODO Replace with stable solana-* versions. 
     # We need newer memmap2 (it's a transitive depedency), 
@@ -43,10 +43,10 @@ It's my first project with Solana / blockchain so I have several questions for m
 
 6. How to properly create a `Vec<Party>` on chain? (The current implementation creates party accounts with PDAs as pubkeys. One seed used to generate these PDAs is set to the next index value. The current index is set in a "shared" account and incremented in the create account transaction. It's a bit ugly and there may be conflicts because the current index value is read outside of the transaction.)
 
-7. How to properly set a program "metadata"? See the current `lib.rs` code:
+7. How to properly define the default program functions and variables? See the current `lib.rs` code:
     ```rust
     // ..
-    // @TODO_QUESTION Is possible to read it from "../keypairs/program-pubkey"?
+    // @TODO_QUESTION Is possible to read id from "../keypairs/program-pubkey"?
     //
     // @TODO_QUESTION Should I use declare_program! instead? Does it work with the `no-entrypoint` feature?
     // (Do I really need the `no-entrypoint` feature?)
@@ -68,7 +68,7 @@ It's my first project with Solana / blockchain so I have several questions for m
 
 10. How to store (long) texts with very variable length (imagine a blog article)? Chunk into accounts?
 
-11. Is possible to get the size of a serialized struct by Borsh representing account data more efficiently? Use something like [binary-layout](https://crates.io/crates/binary-layout), but with `LEN` / `size()` instead of Borsh?
+11. Is it possible to get the size of a serialized struct by Borsh representing account data more efficiently? Use something like [binary-layout](https://crates.io/crates/binary-layout), but with `LEN` / `size()` instead of Borsh?
     ```rust
     impl VotingState {
         pub fn serialized_size() -> usize {
@@ -82,6 +82,6 @@ It's my first project with Solana / blockchain so I have several questions for m
     }
     ```
 
-12. I understand the Program API is designed for performance and to be as universal as possible, but are there plans to create less error-prone Rust abstraction/interface? Maybe something remotely similar to [Anchor](https://project-serum.github.io/anchor). Do you think [Move Language](https://docs.solana.com/proposals/embedding-move) will help with this problem?
+12. I understand the Program API is designed for performance and to be as universal as possible, but are there plans to create less error-prone Rust abstraction / interface? Maybe something remotely similar to [Anchor](https://project-serum.github.io/anchor). Do you think [Move Language](https://docs.solana.com/proposals/embedding-move) will help to mitigate this problem?
 
-13. Is possible the situation where the program fails in runtime because Cross-Program Invocations consume all available computation units because one of the called programs has been upgraded and has become too expensive to run?
+13. Is the following situation possible: The program fails in runtime because Cross-Program Invocations consume all available computation units because one of the called programs has been upgraded and has become too expensive to run?

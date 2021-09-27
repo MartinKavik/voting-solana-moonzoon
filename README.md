@@ -29,9 +29,9 @@ The page allows you to add a _voter_.
 
 - A _voter_ is a regular Solana account. The app makes the voter eligible for voting by creating a _voter votes_ account associated with the given voter and the _voting state_. 
 
-- A _voting_state_ is an account created by the app during the start (if not created yet) and associated with the _voting_owner_. Voters are allowed to vote for 1 week - the _deadline_ is set in the account.
+- A _voting state_ is an account created by the app during the start (if not created yet) and associated with the _voting owner_. Voters are allowed to vote for 1 week - the _deadline_ is set in the _voting state_ account.
 
-- A _voting_owner_ is an account fully controlled by the app.
+- A _voting owner_ is an account fully controlled by the app.
 
 - You can find the pre-filled text input values in:
    - [./program/keypairs/voting-owner-keypair.json](./program/keypairs/voting-owner-keypair.json)
@@ -45,7 +45,7 @@ _Note:_ See the section [Architecture](#architecture) for the visual representat
 
 The page allows you to add a _party_. 
 
-- A _party_ is an account created by the app with the required party name and associated with the `voting_state`.
+- A _party_ is an account created by the app with the required party name and associated with the _voting state_.
 
 - Everybody with a sufficient amount of lamports can create a party.
 
@@ -86,7 +86,7 @@ The frontend part is based on the VDOM-less Rust frontend framework Zoon and com
 
 The advantages are:
 
-- Reduced complexity caused by multiple languages and their ecosystems in one project. It leads to faster development, better Developer Experience and fewer bugs.
+- Reduced complexity caused by multiple languages and their ecosystems in one project. It leads to faster development, better Developer eXperience and fewer bugs.
 
 - Improved performance thanks to Wasm + Rust. I can imagine that especially cryptographic operations are much faster in the Wasm runtime and could be parallelized in the future (if we can't use native browsers APIs like Web Crypto API). Also Zoon is faster than React or Svelte according to the [benchmarks](https://github.com/MoonZoon/MoonZoon#size--speed).
 
@@ -98,9 +98,9 @@ The frontend doesn't communicate directly with the blockchain because:
 
 - The crate [solana-client](https://crates.io/crates/solana-client/1.7.12) isn't suitable for the frontend - e.g. the transitive dependency [url](https://crates.io/crates/url/2.2.2) may even double the output Wasm file size. `serde` is another "heavy" dependency that could be replaced in the future.
 
-- `solana-client` doesn't cover all Solana's real-time APIs currently.
+- `solana-client` doesn't cover all Solana real-time APIs currently.
 
-- Solana has [rate limits](https://docs.solana.com/cluster/rpc-endpoints) for its APIs. We can, for instance, cache responses to avoid client fails.
+- Solana APIs are [rate limited](https://docs.solana.com/cluster/rpc-endpoints). We can, for instance, cache responses to avoid client fails.
 
 - The combination Fetch + Server-Sent Events may be superior to WebSockets in some cases (e.g. better compatibility with proxies and firewalls). However it depends on the app requirements.
 

@@ -24,6 +24,8 @@
     ```
     - Tip: `-r, --reset:  Reset the ledger to genesis if it exists.`
 
+1. Open a new terminal tab and go to `/program` again.
+
 1. Airdrop SOLs
     ```bash
     solana airdrop -C ./config.yml 1 ./keypairs/voting-owner-keypair.json
@@ -40,3 +42,5 @@
     ```bash
     solana program deploy -C ./config.yml --program-id ./keypairs/program-keypair.json ./target/deploy/voting_program.so
     ```
+
+1. Continue in [/app/README.md](../app/README.md).
